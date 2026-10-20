@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<script src="config.js"></script>
 <title>Macro Ledger</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -216,7 +217,12 @@ textarea{min-height:92px;resize:vertical}
 .check{display:flex;align-items:flex-start;gap:10px;font-size:14px}
 .check input{width:18px;height:18px;margin-top:2px;accent-color:var(--ink)}
 .note{font-size:12.5px;color:var(--muted);margin:0}
-.store-note{font-size:12px;color:var(--muted);text-align:center;margin:4px 0 0}
+.sync{display:grid;gap:10px}
+.sync .t{font-weight:600;display:flex;align-items:center;gap:8px}
+.sync .t i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.sync .t i.ok{background:var(--good)} .sync .t i.warn{background:#eda100} .sync .t i.bad{background:var(--over)}
+.sync .s{font-size:13px;color:var(--muted)}
+.sync .links{display:flex;gap:16px;flex-wrap:wrap}
 
 /* Toast */
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);background:var(--ink);color:var(--on-ink);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:30;max-width:calc(100% - 32px);text-align:center}
@@ -270,7 +276,11 @@ textarea{min-height:92px;resize:vertical}
     <label for="weightInput">Weight this morning</label>
     <span class="in"><input id="weightInput" type="number" inputmode="decimal" step="0.1" min="20" max="400" placeholder="—"><span class="muted">kg</span></span>
   </div>
-  <p class="store-note" id="storeNote"></p>
+  <div class="card sync" id="syncCard">
+    <div><div class="t"><i id="syncDot"></i><span id="syncTitle">Connecting…</span></div><div class="s" id="syncSub"></div></div>
+    <div class="rowbtns" id="syncAction" hidden><button class="btn primary" id="syncBtn">Sign in with Google</button></div>
+    <div class="links" id="syncLinks" hidden><button class="link" id="syncNow">Sync now</button><button class="link" id="syncOut">Sign out</button></div>
+  </div>
 </section>
 
 <!-- TRENDS -->
@@ -486,8 +496,137 @@ function dbStore(db, id) {
 }
 const saveErr = e => { console.warn(e); toast(e && e.code === 'quota_exceeded' ? 'Storage is full. Delete some old entries.' : 'Couldn’t save that. Check your connection and try again.'); };
 function getDay(k) { return state.days[k] || { type: 'day', date: k, entries: [], weight: null }; }
-function putDay(d) { state.days[d.date] = d; render(); if (state.store) state.store.saveDay(d).catch(saveErr); }
-function putProfile(p) { state.profile = p; render(); if (state.store) state.store.saveProfile(p).catch(saveErr); }
+function putDay(d) { d.updatedAt = new Date().toISOString(); state.days[d.date] = d; render(); if (state.store) state.store.saveDay(d).catch(saveErr); gsync.markDirty(); }
+function putProfile(p) { p.updatedAt = new Date().toISOString(); state.profile = p; render(); if (state.store) state.store.saveProfile(p).catch(saveErr); gsync.markDirty(); }
+
+/* ---------- Google Drive sync (website copies only) ----------
+   The log is mirrored to one JSON file in the app's private appDataFolder of the signed-in Google account.
+   The browser copy stays the working copy; Drive is pulled on sign-in and before every write, days merge by updatedAt. */
+const GOOGLE_CLIENT_ID = String((window.MACRO_LEDGER_CONFIG && window.MACRO_LEDGER_CONFIG.googleClientId) || '').trim();
+const G_SCOPES = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email';
+const G_FILE = 'macro-ledger.json';
+const ts = s => (s && Date.parse(s)) || 0;
+const gsync = {
+  status: 'none', client: null, token: null, expiresAt: 0, email: '', fileId: null, dirty: false, pushing: false, timer: null, lastSaved: null, resolve: null, reject: null,
+  markDirty() { if (this.status === 'none' || this.status === 'unconfigured' || this.status === 'unavailable') return; this.dirty = true; if (this.token) this.schedule(); },
+  schedule() { clearTimeout(this.timer); this.timer = setTimeout(() => gPush(), 1500); },
+};
+function gLoad() {
+  gsync.status = 'loading'; renderSync();
+  const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.defer = true;
+  s.onload = gInit; s.onerror = () => { gsync.status = 'unavailable'; renderSync(); };
+  document.head.appendChild(s);
+}
+function gInit() {
+  if (!(window.google && google.accounts && google.accounts.oauth2)) { gsync.status = 'unavailable'; renderSync(); return; }
+  gsync.client = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID, scope: G_SCOPES,
+    callback: r => {
+      const ok = !!(r && r.access_token), fn = ok ? gsync.resolve : gsync.reject;
+      if (ok) { gsync.token = r.access_token; gsync.expiresAt = Date.now() + (Number(r.expires_in) || 3600) * 1000; }
+      gsync.resolve = gsync.reject = null; if (fn) fn(r || {});
+    },
+    error_callback: e => { const fn = gsync.reject; gsync.resolve = gsync.reject = null; if (fn) fn(e || {}); },
+  });
+  gsync.status = 'ready'; renderSync();
+  let was = false; try { was = localStorage.getItem('ml:google') === '1'; } catch { }
+  if (was) gConnect('');
+}
+function gToken(prompt) {
+  return new Promise((res, rej) => { gsync.resolve = res; gsync.reject = rej; try { gsync.client.requestAccessToken({ prompt }); } catch (e) { gsync.resolve = gsync.reject = null; rej(e); } });
+}
+async function gEnsureToken() { if (!gsync.token || Date.now() > gsync.expiresAt - 60000) await gToken(''); }
+async function gFetch(url, opts) {
+  const o = opts || {}; const r = await fetch(url, { ...o, headers: { ...(o.headers || {}), Authorization: 'Bearer ' + gsync.token } });
+  if (r.status === 401 || r.status === 403) throw { code: 'auth', status: r.status };
+  if (!r.ok) throw { code: 'http', status: r.status };
+  return r;
+}
+const G_API = 'https://www.googleapis.com/drive/v3', G_UP = 'https://www.googleapis.com/upload/drive/v3';
+async function gFind() { const r = await gFetch(`${G_API}/files?spaces=appDataFolder&q=${encodeURIComponent(`name='${G_FILE}'`)}&fields=files(id,modifiedTime)&pageSize=1`); const j = await r.json(); return (j.files && j.files[0]) || null; }
+async function gRead(id) { const r = await gFetch(`${G_API}/files/${id}?alt=media`); return r.json(); }
+async function gCreate(body) {
+  const b = '-----ml' + Date.now();
+  const multipart = `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({ name: G_FILE, parents: ['appDataFolder'] })}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(body)}\r\n--${b}--`;
+  const r = await gFetch(`${G_UP}/files?uploadType=multipart&fields=id`, { method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${b}` }, body: multipart });
+  return (await r.json()).id;
+}
+async function gUpdate(id, body) { await gFetch(`${G_UP}/files/${id}?uploadType=media`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); }
+function gMerge(remote) {
+  let localNewer = false, changed = false;
+  const rd = (remote && remote.days && typeof remote.days === 'object') ? remote.days : {};
+  for (const k of Object.keys(rd)) {
+    const r = rd[k], l = state.days[k];
+    if (!r || r.date !== k) continue;
+    if (!l || ts(r.updatedAt) > ts(l.updatedAt)) { state.days[k] = r; changed = true; if (state.store) state.store.saveDay(r).catch(() => { }); }
+    else if (ts(l.updatedAt) > ts(r.updatedAt)) localNewer = true;
+  }
+  for (const k of Object.keys(state.days)) if (!rd[k]) localNewer = true;
+  const rp = remote && remote.profile;
+  if (rp && typeof rp === 'object' && (!state.profile || ts(rp.updatedAt) > ts(state.profile.updatedAt))) { state.profile = rp; changed = true; if (state.store) state.store.saveProfile(rp).catch(() => { }); }
+  else if (state.profile && (!rp || ts(state.profile.updatedAt) > ts(rp.updatedAt))) localNewer = true;
+  return { localNewer, changed };
+}
+async function gConnect(prompt) {
+  if (!gsync.client) return;
+  gsync.status = 'connecting'; renderSync();
+  try { await gToken(prompt); }
+  catch (e) { gsync.status = prompt === '' ? 'ready' : 'error'; gsync.err = 'Google sign-in didn’t complete.'; renderSync(); return; }
+  try { localStorage.setItem('ml:google', '1'); } catch { }
+  try { const r = await gFetch('https://www.googleapis.com/oauth2/v3/userinfo'); const j = await r.json(); gsync.email = j.email || ''; } catch { gsync.email = ''; }
+  try {
+    const f = await gFind(); gsync.fileId = f ? f.id : null;
+    const m = f ? gMerge(await gRead(f.id)) : { localNewer: !!(state.profile || Object.keys(state.days).length), changed: false };
+    if (m.changed) render();
+    gsync.status = 'synced'; gsync.lastSaved = f ? new Date() : null;
+    if (m.localNewer || gsync.dirty || !f) await gPush(); else renderSync();
+  } catch (e) { gsync.status = e && e.code === 'auth' ? 'needsAuth' : 'error'; gsync.err = 'Couldn’t read Google Drive.'; renderSync(); }
+}
+async function gPush() {
+  if (!gsync.client || !gsync.token) return;
+  if (gsync.pushing) { gsync.dirty = true; return; }
+  gsync.pushing = true; gsync.dirty = false; gsync.status = 'syncing'; renderSync();
+  try {
+    await gEnsureToken();
+    if (!gsync.fileId) { const f = await gFind(); gsync.fileId = f ? f.id : null; }
+    if (gsync.fileId) { const m = gMerge(await gRead(gsync.fileId)); if (m.changed) render(); }
+    const payload = { version: 1, savedAt: new Date().toISOString(), profile: state.profile, days: state.days };
+    if (gsync.fileId) await gUpdate(gsync.fileId, payload); else gsync.fileId = await gCreate(payload);
+    gsync.lastSaved = new Date(); gsync.status = 'synced';
+  } catch (e) {
+    console.warn('drive sync', e); gsync.dirty = true;
+    gsync.status = e && e.code === 'auth' ? 'needsAuth' : 'error';
+    gsync.err = e && e.code === 'auth' ? '' : 'Couldn’t reach Google Drive.';
+  }
+  gsync.pushing = false; renderSync();
+  if (gsync.dirty && gsync.status === 'synced') gsync.schedule();
+}
+function gSignOut() {
+  try { if (gsync.token && window.google) google.accounts.oauth2.revoke(gsync.token, () => { }); } catch { }
+  gsync.token = null; gsync.email = ''; gsync.fileId = null; gsync.status = 'ready';
+  try { localStorage.removeItem('ml:google'); } catch { }
+  renderSync(); toast('Signed out. Your log stays in this browser.');
+}
+function renderSync() {
+  const card = $('#syncCard'), dot = $('#syncDot'), title = $('#syncTitle'), sub = $('#syncSub'), act = $('#syncAction'), btn = $('#syncBtn'), links = $('#syncLinks');
+  const kind = state.store ? state.store.kind : null;
+  const set = (d, t, s, b, l) => { dot.className = d; title.textContent = t; sub.textContent = s; act.hidden = !b; if (b) btn.textContent = b; links.hidden = !l; };
+  if (!kind) return set('', 'Connecting…', '', null, false);
+  if (kind === 'db') return set('ok', 'Saved to your Claude account', 'Only you can see this log. It follows you to every device you open it on.', null, false);
+  const when = gsync.lastSaved ? gsync.lastSaved.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }) : '';
+  switch (gsync.status) {
+    case 'unconfigured': return set('warn', 'Saved in this browser only', 'Google sign-in is not set up for this copy yet. Add your Google OAuth client ID to config.js next to index.html (steps in the README).', null, false);
+    case 'unavailable': return set('warn', 'Saved in this browser only', 'Google sign-in could not load here. Check that the page is served over https and that your browser allows accounts.google.com.', 'Try again', false);
+    case 'loading': case 'none': return set('', 'Saved in this browser only', 'Loading Google sign-in…', null, false);
+    case 'ready': return set('warn', 'Saved in this browser only', 'Sign in with Google to keep your log in your Google Drive and pick it up on any device.', 'Sign in with Google', false);
+    case 'connecting': return set('', 'Connecting to Google…', 'A Google window may open to confirm.', null, false);
+    case 'syncing': return set('', 'Saving to Google Drive…', gsync.email ? `as ${gsync.email}` : '', null, true);
+    case 'synced': return set('ok', 'Synced to Google Drive', `${gsync.email ? `as ${gsync.email}` : ''}${when ? ` · saved ${when}` : ''}${gsync.dirty ? ' · changes pending' : ''}`, null, true);
+    case 'needsAuth': return set('warn', 'Google sign-in expired', 'Your changes are safe in this browser. Sign in again to keep syncing them to Drive.', 'Sign in again', true);
+    case 'error': return set('bad', 'Couldn’t sync to Google Drive', `${gsync.err || 'Something went wrong.'} Your changes are kept in this browser and will sync when you retry.`, 'Retry', true);
+  }
+  set('warn', 'Saved in this browser only', '', null, false);
+}
 
 /* ---------- maths ---------- */
 function dayTotals(day) {
@@ -599,7 +738,7 @@ function renderToday() {
   log.innerHTML = html;
   const w = $('#weightInput');
   if (document.activeElement !== w) w.value = day.weight ? day.weight : '';
-  $('#storeNote').textContent = !state.store ? 'Connecting…' : state.store.kind === 'db' ? 'Saved to your account. Only you can see this log.' : 'Saved in this browser only.';
+  renderSync();
 }
 
 /* ---------- trends ---------- */
@@ -1102,6 +1241,14 @@ function wire() {
     P.updatedAt = new Date().toISOString();
     putProfile(P); toast(`Target is now ${fmt(P.targets.kcal)} kcal`);
   });
+  $('#syncBtn').onclick = () => {
+    if (gsync.status === 'unavailable') { gLoad(); return; }
+    if (gsync.status === 'error' && gsync.token) { gPush(); return; }
+    gConnect(gsync.status === 'needsAuth' ? '' : 'select_account');
+  };
+  $('#syncNow').onclick = () => { if (gsync.token) gPush(); else gConnect(''); };
+  $('#syncOut').onclick = gSignOut;
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && gsync.dirty && gsync.token && !gsync.pushing) { clearTimeout(gsync.timer); gPush(); } });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet').hidden) closeSheet(); });
   window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (VIEWS.includes(h) && h !== state.view) go(h); });
 }
@@ -1128,6 +1275,7 @@ async function start(hot) {
   if (db && user) { try { id = await user.id(); } catch { id = null; } }
   state.store = db && id ? dbStore(db, id) : localStore();
   state.store.start(days => { state.days = days; state.ready = true; render(); }, p => { state.profile = p; state.ready = true; render(); });
+  if (state.store.kind === 'local' && !window.claude) { if (GOOGLE_CLIENT_ID) gLoad(); else gsync.status = 'unconfigured'; }
   render();
 }
 const hot = window.claude && window.claude.hot;
