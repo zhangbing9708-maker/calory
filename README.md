@@ -7,7 +7,7 @@ Everything lives in [`index.html`](index.html): no build step, no dependencies b
 ## What it does
 
 - **Targets** – Mifflin-St Jeor resting energy × activity multiplier, a goal (lose / maintain / gain) at a rate expressed as % of body weight per week, then a protein / fat / carb split. Every number can be edited before saving.
-- **Today** – a hero ring with calories left, three macro meters, and the day's log grouped by meal. Log food by **searching** a built-in database of about 375 common foods and drinks (pick a serving or enter grams), by **describing it**, by **photo**, or **by hand**; log **exercise** by description, quick chips, or a watch reading. Burned calories can be added back to the day's budget (switch on the Targets tab).
+- **Today** – a sign-in banner at the top, a hero ring with calories left, three macro meters, a collapsible **Last 7 days** history (eaten vs burned against each day's budget, with an under/over pill per day and a weekly net), and the day's log grouped by meal. Log food by **searching** a built-in database of about 375 common foods and drinks (pick a serving or enter grams), by **describing it**, by **photo**, or **by hand**; log **exercise** by description, quick chips, or a watch reading. Burned calories can be added back to the day's budget (switch on the Targets tab).
 
 ## Food database
 

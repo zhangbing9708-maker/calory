@@ -17,13 +17,13 @@
   --p:#2a78d6; --p-track:#d4e3f7;
   --c:#eb6834; --c-track:#fbdfd3;
   --f:#1baf7a; --f-track:#cdeee0;
-  --over:#d03b3b; --over-track:#f5d4d4; --good:#0ca30c;
+  --over:#d03b3b; --over-track:#f5d4d4; --over-ink:#a32626; --good:#0ca30c; --good-ink:#13653a;
   --display:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
   --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --radius:14px;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101312;--card:#191d1b;--fg:#eef1ee;--muted:#98a19c;--line:#2a302d;--ink:#eef1ee;--on-ink:#101312;--track:#262c29;--wash:#202623;--p:#3987e5;--p-track:#1d3450;--c:#d95926;--c-track:#4a2a1c;--f:#199e70;--f-track:#173b2e;--over:#e66767;--over-track:#4a2222;--good:#0ca30c;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#101312;--card:#191d1b;--fg:#eef1ee;--muted:#98a19c;--line:#2a302d;--ink:#eef1ee;--on-ink:#101312;--track:#262c29;--wash:#202623;--p:#3987e5;--p-track:#1d3450;--c:#d95926;--c-track:#4a2a1c;--f:#199e70;--f-track:#173b2e;--over:#e66767;--over-track:#4a2222;--good:#0ca30c;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101312;--card:#191d1b;--fg:#eef1ee;--muted:#98a19c;--line:#2a302d;--ink:#eef1ee;--on-ink:#101312;--track:#262c29;--wash:#202623;--p:#3987e5;--p-track:#1d3450;--c:#d95926;--c-track:#4a2a1c;--f:#199e70;--f-track:#173b2e;--over:#e66767;--over-track:#4a2222;--over-ink:#f09a9a;--good:#0ca30c;--good-ink:#6fd49a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101312;--card:#191d1b;--fg:#eef1ee;--muted:#98a19c;--line:#2a302d;--ink:#eef1ee;--on-ink:#101312;--track:#262c29;--wash:#202623;--p:#3987e5;--p-track:#1d3450;--c:#d95926;--c-track:#4a2a1c;--f:#199e70;--f-track:#173b2e;--over:#e66767;--over-track:#4a2222;--over-ink:#f09a9a;--good:#0ca30c;--good-ink:#6fd49a;color-scheme:dark}
 
 *{box-sizing:border-box}
 html{height:100%}
@@ -82,6 +82,39 @@ main{max-width:560px;margin:0 auto;display:grid;gap:14px;padding-top:4px}
 .m-p .bar i{background:var(--p)} .m-c .bar i{background:var(--c)} .m-f .bar i{background:var(--f)}
 .meter .row .val{color:var(--muted)}
 .meter .row .val b{color:var(--fg);font-weight:600}
+
+/* Week history */
+.week{display:grid;gap:10px}
+.week .hd{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left}
+.week .hd h2{font-size:15px;display:inline-flex;align-items:center;gap:6px}
+.week .hd .chev{width:16px;height:16px;transition:transform .2s;color:var(--muted)}
+.week.closed .hd .chev{transform:rotate(-90deg)}
+.week .hd .sum{font-size:12.5px;color:var(--muted);text-align:right;min-width:0}
+.week .hd .sum b{color:var(--fg);font-weight:600}
+.week.closed .body{display:none}
+.week .body{display:grid;gap:7px}
+.week .legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted);padding-left:48px}
+.week .legend span{display:inline-flex;align-items:center;gap:5px}
+.week .legend i{width:10px;height:6px;border-radius:3px;background:var(--ink)}
+.week .legend i.burn{background:var(--f)}
+.week .legend i.tick{width:2px;height:10px;background:var(--muted)}
+.wrow{display:grid;grid-template-columns:40px 1fr auto auto;gap:8px;align-items:center;font-size:12.5px;min-height:24px}
+.wrow .d{color:var(--muted);font-weight:500;white-space:nowrap}
+.wrow .d.today{color:var(--fg)}
+.wrow .bar{position:relative;height:8px;border-radius:4px;background:var(--track);min-width:0}
+.wrow .bar i{position:absolute;left:0;top:0;height:100%;border-radius:4px;background:var(--ink);max-width:100%}
+.wrow .bar i.over{background:var(--over)}
+.wrow .bar em{position:absolute;top:0;height:100%;background:var(--f-track);border-radius:0 4px 4px 0}
+.wrow .bar b{position:absolute;top:-3px;width:2px;height:14px;background:var(--muted);border-radius:1px;margin-left:-1px}
+.wrow .n{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;min-width:86px}
+.wrow .n b{color:var(--fg);font-weight:600}
+.wrow .n .burn{color:var(--f)}
+.pill{display:inline-block;min-width:54px;text-align:center;padding:3px 7px;border-radius:999px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill.under{background:var(--f-track);color:var(--good-ink)}
+.pill.over{background:var(--over-track);color:var(--over-ink)}
+.pill.even{background:var(--wash);color:var(--fg)}
+.pill.none{background:var(--wash);color:var(--muted);font-weight:500}
+@media (max-width:360px){.wrow{grid-template-columns:36px 1fr auto auto;gap:6px}.wrow .n{min-width:0}}
 
 /* Actions */
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -239,12 +272,19 @@ textarea{min-height:92px;resize:vertical}
 .check{display:flex;align-items:flex-start;gap:10px;font-size:14px}
 .check input{width:18px;height:18px;margin-top:2px;accent-color:var(--ink)}
 .note{font-size:12.5px;color:var(--muted);margin:0}
-.sync{display:grid;gap:10px}
-.sync .t{font-weight:600;display:flex;align-items:center;gap:8px}
-.sync .t i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
-.sync .t i.ok{background:var(--good)} .sync .t i.warn{background:#eda100} .sync .t i.bad{background:var(--over)}
-.sync .s{font-size:13px;color:var(--muted)}
-.sync .links{display:flex;gap:16px;flex-wrap:wrap}
+/* Sign-in / sync banner (top of every view) */
+.syncbar{max-width:560px;margin:0 auto 14px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px;display:grid;gap:10px}
+.syncbar.attn{border-color:var(--p);background:var(--p-track)}
+.syncbar .row{display:flex;align-items:center;gap:10px}
+.syncbar .row > i{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.syncbar .row > i.ok{background:var(--good)} .syncbar .row > i.warn{background:#eda100} .syncbar .row > i.bad{background:var(--over)}
+.syncbar .txt{flex:1;min-width:0}
+.syncbar .t{font-weight:600;font-size:14px;line-height:1.3}
+.syncbar .s{font-size:12.5px;color:var(--muted);line-height:1.35}
+.syncbar.attn .s{color:var(--fg)}
+.syncbar .links{display:flex;gap:14px;flex:none}
+.syncbar .btn{width:100%}
+@media (min-width:480px){.syncbar.attn{grid-template-columns:1fr auto;align-items:center}.syncbar.attn .btn{width:auto;padding-inline:18px}}
 
 /* Toast */
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);background:var(--ink);color:var(--on-ink);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:30;max-width:calc(100% - 32px);text-align:center}
@@ -262,6 +302,11 @@ textarea{min-height:92px;resize:vertical}
   <button class="nav" id="nextDay" aria-label="Next day">›</button>
   <button class="nav today-jump" id="jumpToday" hidden>Today</button>
 </header>
+
+<div class="syncbar" id="syncCard">
+  <div class="row"><i id="syncDot"></i><div class="txt"><div class="t" id="syncTitle">Connecting…</div><div class="s" id="syncSub"></div></div><div class="links" id="syncLinks" hidden><button class="link" id="syncNow">Sync now</button><button class="link" id="syncOut">Sign out</button></div></div>
+  <div id="syncAction" hidden><button class="btn primary" id="syncBtn">Sign in with Google</button></div>
+</div>
 
 <main>
 <!-- TODAY -->
@@ -285,6 +330,14 @@ textarea{min-height:92px;resize:vertical}
     <div class="meter m-f"><div class="row"><span class="name"><i class="dot"></i>Fat</span><span class="val tnum" id="m-f-val">0 g</span></div><div class="bar"><i id="m-f-bar"></i></div></div>
   </div>
 
+  <div class="card week" id="weekCard">
+    <button class="hd" id="weekToggle" aria-expanded="true"><h2><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>Last 7 days</h2><span class="sum" id="weekSum"></span></button>
+    <div class="body" id="weekBody">
+      <div class="legend"><span><i></i>eaten</span><span><i class="burn"></i>burned (added to budget)</span><span><i class="tick"></i>target</span></div>
+      <div id="weekRows"></div>
+    </div>
+  </div>
+
   <button class="searchbar" id="openSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search foods…</button>
   <div class="actions">
     <button class="btn primary" id="openText"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Describe</button>
@@ -298,11 +351,6 @@ textarea{min-height:92px;resize:vertical}
   <div class="card weight">
     <label for="weightInput">Weight this morning</label>
     <span class="in"><input id="weightInput" type="number" inputmode="decimal" step="0.1" min="20" max="400" placeholder="—"><span class="muted">kg</span></span>
-  </div>
-  <div class="card sync" id="syncCard">
-    <div><div class="t"><i id="syncDot"></i><span id="syncTitle">Connecting…</span></div><div class="s" id="syncSub"></div></div>
-    <div class="rowbtns" id="syncAction" hidden><button class="btn primary" id="syncBtn">Sign in with Google</button></div>
-    <div class="links" id="syncLinks" hidden><button class="link" id="syncNow">Sync now</button><button class="link" id="syncOut">Sign out</button></div>
   </div>
 </section>
 
@@ -1044,7 +1092,7 @@ function gSignOut() {
 function renderSync() {
   const card = $('#syncCard'), dot = $('#syncDot'), title = $('#syncTitle'), sub = $('#syncSub'), act = $('#syncAction'), btn = $('#syncBtn'), links = $('#syncLinks');
   const kind = state.store ? state.store.kind : null;
-  const set = (d, t, s, b, l) => { dot.className = d; title.textContent = t; sub.textContent = s; act.hidden = !b; if (b) btn.textContent = b; links.hidden = !l; };
+  const set = (d, t, s, b, l, attn) => { dot.className = d; title.textContent = t; sub.textContent = s; act.hidden = !b; if (b) btn.textContent = b; links.hidden = !l; card.classList.toggle('attn', !!attn); };
   if (!kind) return set('', 'Connecting…', '', null, false);
   if (kind === 'db') return set('ok', 'Saved to your Claude account', 'Only you can see this log. It follows you to every device you open it on.', null, false);
   const when = gsync.lastSaved ? gsync.lastSaved.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }) : '';
@@ -1052,11 +1100,11 @@ function renderSync() {
     case 'unconfigured': return set('warn', 'Saved in this browser only', 'Google sign-in is not set up for this copy yet. Add your Google OAuth client ID to config.js next to index.html (steps in the README).', null, false);
     case 'unavailable': return set('warn', 'Saved in this browser only', 'Google sign-in could not load here. Check that the page is served over https and that your browser allows accounts.google.com.', 'Try again', false);
     case 'loading': case 'none': return set('', 'Saved in this browser only', 'Loading Google sign-in…', null, false);
-    case 'ready': return set('warn', 'Saved in this browser only', 'Sign in with Google to keep your log in your Google Drive and pick it up on any device.', 'Sign in with Google', false);
+    case 'ready': return set('warn', 'Sign in to keep your log safe', 'Right now it lives only in this browser. Sign in with Google and it is saved to your Google Drive and follows you to any device.', 'Sign in with Google', false, true);
     case 'connecting': return set('', 'Connecting to Google…', 'A Google window may open to confirm.', null, false);
     case 'syncing': return set('', 'Saving to Google Drive…', gsync.email ? `as ${gsync.email}` : '', null, true);
-    case 'synced': return set('ok', 'Synced to Google Drive', `${gsync.email ? `as ${gsync.email}` : ''}${when ? ` · saved ${when}` : ''}${gsync.dirty ? ' · changes pending' : ''}`, null, true);
-    case 'needsAuth': return set('warn', 'Google sign-in expired', 'Your changes are safe in this browser. Sign in again to keep syncing them to Drive.', 'Sign in again', true);
+    case 'synced': return set('ok', 'Synced to Google Drive', `${gsync.email ? `${gsync.email}` : ''}${when ? ` · saved ${when}` : ''}${gsync.dirty ? ' · changes pending' : ''}`, null, true);
+    case 'needsAuth': return set('warn', 'Google sign-in expired', 'Your changes are safe in this browser. Sign in again to keep syncing them to Drive.', 'Sign in again', true, true);
     case 'error': return set('bad', 'Couldn’t sync to Google Drive', `${gsync.err || 'Something went wrong.'} Your changes are kept in this browser and will sync when you retry.`, 'Retry', true);
   }
   set('warn', 'Saved in this browser only', '', null, false);
@@ -1128,6 +1176,7 @@ function render() {
   for (const v of VIEWS) $('#view-' + v).hidden = v !== state.view;
   $$('.tab').forEach(b => b.classList.toggle('on', b.dataset.view === state.view));
   if (onToday) renderToday(); else if (state.view === 'trends') renderTrends(); else renderTargets();
+  renderSync();
 }
 
 function renderToday() {
@@ -1172,7 +1221,41 @@ function renderToday() {
   log.innerHTML = html;
   const w = $('#weightInput');
   if (document.activeElement !== w) w.value = day.weight ? day.weight : '';
-  renderSync();
+  renderWeek();
+}
+
+/* ---------- last 7 days ---------- */
+function renderWeek() {
+  const T = state.profile && state.profile.targets ? num(state.profile.targets.kcal) : 0;
+  const rows = [];
+  for (let i = 0; i < 7; i++) {
+    const k = shiftKey(state.date, -i), d = state.days[k], has = !!(d && d.entries && d.entries.length);
+    const eaten = has ? dayTotals(d).kcal : 0, burn = dayBurn(d), budget = T ? dayBudget(d) : 0;
+    rows.push({ k, has, eaten, burn, budget, diff: eaten - budget });
+  }
+  const logged = rows.filter(r => r.has);
+  const under = logged.filter(r => r.diff < 0).length, net = logged.reduce((a, r) => a + r.diff, 0);
+  $('#weekSum').innerHTML = !T ? 'Set a target to see deficits' : !logged.length ? 'Nothing logged yet' : `<b>${under}</b> of ${logged.length} ${logged.length === 1 ? 'day' : 'days'} under · net <b>${net < 0 ? '−' : '+'}${fmt(net)}</b>`;
+  $('.week .legend').innerHTML = `<span><i></i>eaten</span><span><i class="burn"></i>burned${addBack() ? ' (added to budget)' : ''}</span>${T ? '<span><i class="tick"></i>target</span>' : ''}`;
+  const maxEaten = Math.max(1, ...rows.map(r => r.eaten));
+  $('#weekRows').innerHTML = rows.map(r => {
+    const isToday = r.k === todayKey();
+    const label = isToday ? 'Today' : parseKey(r.k).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric' });
+    const scale = T ? Math.max(r.budget, r.eaten, 1) : maxEaten;
+    const pct = v => (Math.min(100, v / scale * 100)).toFixed(1) + '%';
+    const over = T && r.has && r.diff > 0;
+    let bar = '';
+    if (T && addBack() && r.burn > 0 && r.budget > T) bar += `<em style="left:${pct(T)};width:${(Math.min(100, r.budget / scale * 100) - Math.min(100, T / scale * 100)).toFixed(1)}%"></em>`;
+    if (r.has) bar += `<i class="${over ? 'over' : ''}" style="width:${pct(r.eaten)}"></i>`;
+    if (T && r.budget > T) bar += `<b style="left:${pct(T)}"></b>`;
+    const nums = r.has ? `<b>${fmt(r.eaten)}</b>${r.burn ? ` · <span class="burn">${fmt(r.burn)}</span>` : ''}` : `<span>not logged</span>`;
+    let pill;
+    if (!T || !r.has) pill = `<span class="pill none">—</span>`;
+    else if (r.diff <= -25) pill = `<span class="pill under">−${fmt(r.diff)}</span>`;
+    else if (r.diff >= 25) pill = `<span class="pill over">+${fmt(r.diff)}</span>`;
+    else pill = `<span class="pill even">on target</span>`;
+    return `<div class="wrow"><span class="d${isToday ? ' today' : ''}">${label}</span><span class="bar" title="${r.has ? `${fmt(r.eaten)} eaten${r.burn ? `, ${fmt(r.burn)} burned` : ''}${T ? `, budget ${fmt(r.budget)}` : ''}` : 'Nothing logged'}">${bar}</span><span class="n">${nums}</span>${pill}</div>`;
+  }).join('');
 }
 
 /* ---------- trends ---------- */
@@ -1660,6 +1743,9 @@ function wire() {
   $('#prevDay').onclick = () => { state.date = shiftKey(state.date, -1); render(); };
   $('#nextDay').onclick = () => { state.date = shiftKey(state.date, 1); render(); };
   $('#jumpToday').onclick = () => { state.date = todayKey(); render(); };
+  let weekClosed = false; try { weekClosed = localStorage.getItem('ml:weekClosed') === '1'; } catch { }
+  $('#weekCard').classList.toggle('closed', weekClosed); $('#weekToggle').setAttribute('aria-expanded', String(!weekClosed));
+  $('#weekToggle').onclick = () => { const closed = $('#weekCard').classList.toggle('closed'); $('#weekToggle').setAttribute('aria-expanded', String(!closed)); try { localStorage.setItem('ml:weekClosed', closed ? '1' : '0'); } catch { } };
   $$('.tab').forEach(b => b.onclick = () => go(b.dataset.view));
   $('#setTargetCta').onclick = () => go('targets');
   $('#openSearch').onclick = () => openSheet('search');
