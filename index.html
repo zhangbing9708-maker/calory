@@ -133,7 +133,7 @@ main{max-width:560px;margin:0 auto;display:grid;gap:14px;padding-top:4px}
 .panel{position:relative;background:var(--card);border-radius:18px 18px 0 0;max-height:92dvh;overflow:auto;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:grid;gap:14px;max-width:560px;width:100%;margin:0 auto;box-shadow:0 -8px 30px rgba(0,0,0,.12)}
 .grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto}
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--wash);border-radius:12px;padding:3px;gap:3px}
-.seg button{padding:9px 6px;border-radius:9px;font-weight:500;font-size:14px;color:var(--muted)}
+.seg button{padding:9px 4px;border-radius:9px;font-weight:500;font-size:13.5px;color:var(--muted)}
 .seg button.on{background:var(--card);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 textarea,.text,.num{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);min-width:0}
 textarea{min-height:92px;resize:vertical}
@@ -177,6 +177,28 @@ textarea{min-height:92px;resize:vertical}
 .manual .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .manual label{display:grid;gap:3px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .link{color:var(--p);font-weight:500;font-size:13.5px;text-decoration:underline;text-underline-offset:2px}
+
+/* Food search */
+.searchbar{display:flex;align-items:center;gap:10px;width:100%;padding:13px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--muted);font-size:15px;text-align:left}
+.searchbar:active{background:var(--wash)}
+.searchbar svg{width:20px;height:20px;flex:none}
+.search-in{position:relative}
+.search-in input{padding-left:38px}
+.search-in svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted);pointer-events:none}
+.results{display:grid;gap:6px;max-height:46dvh;overflow:auto}
+.rrow{display:grid;grid-template-columns:1fr auto;gap:1px 10px;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);align-items:center;min-width:0}
+.rrow:active{background:var(--wash)}
+.rrow .n{font-weight:500;min-width:0}
+.rrow .s{grid-column:1;font-size:12.5px;color:var(--muted)}
+.rrow .k{grid-row:1 / span 2;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.rrow .k small{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
+.pick{display:grid;gap:12px}
+.pick .amt{display:grid;grid-template-columns:96px 1fr;gap:8px}
+.pick .amt input{text-align:right;font-variant-numeric:tabular-nums}
+.pick .qty{display:flex;gap:6px;flex-wrap:wrap}
+.pick .sum{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:12px 14px;border-radius:12px;background:var(--wash);font-size:13.5px;color:var(--muted)}
+.pick .sum b{font-family:var(--display);font-size:22px;color:var(--fg);white-space:nowrap}
+.search-foot{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
 
 /* Trends */
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -263,6 +285,7 @@ textarea{min-height:92px;resize:vertical}
     <div class="meter m-f"><div class="row"><span class="name"><i class="dot"></i>Fat</span><span class="val tnum" id="m-f-val">0 g</span></div><div class="bar"><i id="m-f-bar"></i></div></div>
   </div>
 
+  <button class="searchbar" id="openSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search foods…</button>
   <div class="actions">
     <button class="btn primary" id="openText"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Describe</button>
     <button class="btn primary" id="openPhoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Photo</button>
@@ -374,7 +397,23 @@ textarea{min-height:92px;resize:vertical}
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <div class="grab"></div>
     <div class="review-h"><h2 id="sheetTitle">Log a meal</h2><button class="link" id="sheetClose">Close</button></div>
-    <div class="seg" id="modeSeg"><button type="button" data-mode="text" class="on">Describe</button><button type="button" data-mode="photo">Photo</button><button type="button" data-mode="manual">By hand</button></div>
+    <div class="seg" id="modeSeg"><button type="button" data-mode="search">Search</button><button type="button" data-mode="text" class="on">Describe</button><button type="button" data-mode="photo">Photo</button><button type="button" data-mode="manual">By hand</button></div>
+
+    <div class="stack" id="mode-search" hidden>
+      <div class="search-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input class="text" id="foodQuery" type="search" placeholder="Search foods, e.g. banana, chicken breast, latte" autocomplete="off" autocapitalize="off"></div>
+      <div class="results" id="foodResults"></div>
+      <div class="pick" id="foodPick" hidden>
+        <div class="review-h"><h3 id="pickName"></h3><button class="link" id="pickBack">Back to results</button></div>
+        <p class="hint" id="pickPer"></p>
+        <div class="amt"><input class="num" id="pickAmt" type="number" inputmode="decimal" min="0" step="0.5" value="1" aria-label="Amount"><select class="sel" id="pickUnit" aria-label="Unit"></select></div>
+        <div class="qty" id="pickQty"><button type="button" class="chip" data-q="0.5">½</button><button type="button" class="chip" data-q="1">1</button><button type="button" class="chip" data-q="1.5">1½</button><button type="button" class="chip" data-q="2">2</button><button type="button" class="chip" data-q="3">3</button></div>
+        <div class="sum"><span id="pickSum"></span><b id="pickKcal"></b></div>
+        <label class="f" style="display:grid;gap:5px;font-size:12.5px;color:var(--muted)"><span style="font-weight:500">Meal</span><select class="sel" id="pickMeal"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option></select></label>
+        <div class="rowbtns"><button class="btn primary" id="pickAdd">Add to log</button><button class="btn" id="pickAddMore">Add &amp; keep searching</button></div>
+      </div>
+      <div class="search-foot" id="searchFoot"><button class="link" id="toDescribe">Can’t find it? Describe it</button><button class="link" id="toManual">Add by hand</button></div>
+      <p class="hint">Reference values per 100 g from USDA FoodData Central, with Australian serving sizes. Composite dishes are typical averages.</p>
+    </div>
 
     <div class="stack" id="mode-text">
       <textarea id="descText" placeholder="e.g. 2 scrambled eggs, a slice of sourdough with butter, flat white"></textarea>
@@ -458,6 +497,401 @@ const todayKey = () => keyOf(new Date());
 const MEALS = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 const ACT = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very: 1.9 };
 const VIEWS = ['today', 'trends', 'targets'];
+
+/* ---------- food database ----------
+   [name, category, kcal, protein, carbs, fat (all per 100 g), [[serving label, grams], ...], "search aliases"]
+   Values are USDA FoodData Central (SR Legacy) reference figures per 100 g; Australian brand items use the maker's label;
+   composite dishes (curries, sandwiches, takeaway) are typical averages and marked by their category. */
+const FOODS = [
+// Fruit
+["Apple","Fruit",52,0.3,13.8,0.2,[["1 medium",182],["1 small",149],["1 large",223],["1 cup sliced",109]]],
+["Banana","Fruit",89,1.1,22.8,0.3,[["1 medium",118],["1 small",101],["1 large",136]]],
+["Orange","Fruit",47,0.9,11.8,0.1,[["1 medium",131],["1 large",184]]],
+["Mandarin","Fruit",53,0.8,13.3,0.3,[["1 medium",88],["2 mandarins",176]],"tangerine clementine imperial"],
+["Strawberries","Fruit",32,0.7,7.7,0.3,[["1 cup halves",152],["1 berry",12],["1 punnet",250]]],
+["Blueberries","Fruit",57,0.7,14.5,0.3,[["1/2 cup",74],["1 cup",148],["1 punnet",125]]],
+["Raspberries","Fruit",52,1.2,11.9,0.7,[["1/2 cup",62],["1 cup",123]]],
+["Blackberries","Fruit",43,1.4,9.6,0.5,[["1/2 cup",72],["1 cup",144]]],
+["Grapes","Fruit",69,0.7,18.1,0.2,[["1 cup",151],["10 grapes",49],["small bunch",100]]],
+["Watermelon","Fruit",30,0.6,7.6,0.2,[["1 cup diced",152],["1 wedge",286]]],
+["Rockmelon","Fruit",34,0.8,8.2,0.2,[["1 cup cubes",160],["1 wedge",69]],"cantaloupe melon"],
+["Honeydew melon","Fruit",36,0.5,9.1,0.1,[["1 cup",170],["1 wedge",129]]],
+["Pineapple","Fruit",50,0.5,13.1,0.1,[["1 cup chunks",165],["1 slice",84]]],
+["Mango","Fruit",60,0.8,15.0,0.4,[["1 cheek",100],["1 cup pieces",165],["1 whole mango",336]]],
+["Peach","Fruit",39,0.9,9.5,0.3,[["1 medium",150]]],
+["Nectarine","Fruit",44,1.1,10.6,0.3,[["1 medium",142]]],
+["Pear","Fruit",57,0.4,15.2,0.1,[["1 medium",178],["1 small",148]]],
+["Plum","Fruit",46,0.7,11.4,0.3,[["1 plum",66],["2 plums",132]]],
+["Apricot","Fruit",48,1.4,11.1,0.4,[["1 apricot",35],["3 apricots",105]]],
+["Cherries","Fruit",63,1.1,16.0,0.2,[["10 cherries",82],["1 cup",154]]],
+["Kiwifruit","Fruit",61,1.1,14.7,0.5,[["1 kiwi",69],["2 kiwis",138]],"kiwi"],
+["Avocado","Fruit",160,2.0,8.5,14.7,[["1/4 avocado",50],["1/2 avocado",100],["1 whole",201]],"avo"],
+["Lemon","Fruit",29,1.1,9.3,0.3,[["1 lemon",58],["juice of 1 lemon",47],["1 wedge",7]]],
+["Lime","Fruit",30,0.7,10.5,0.2,[["1 lime",67],["1 wedge",8]]],
+["Grapefruit","Fruit",42,0.8,10.7,0.1,[["1/2 grapefruit",123]]],
+["Passionfruit","Fruit",97,2.2,23.4,0.7,[["1 passionfruit",18],["pulp of 2",36]]],
+["Fig","Fruit",74,0.8,19.2,0.3,[["1 fig",50]]],
+["Pomegranate seeds","Fruit",83,1.7,18.7,1.2,[["1/4 cup",44],["1/2 cup",87]],"arils"],
+["Papaya","Fruit",43,0.5,10.8,0.3,[["1 cup",145]],"pawpaw"],
+["Dates, medjool","Fruit",277,1.8,75.0,0.2,[["1 date",24],["3 dates",72]]],
+["Sultanas / raisins","Fruit",299,3.1,79.2,0.5,[["1 tbsp",9],["small box",43],["1/4 cup",41]],"dried grapes"],
+["Dried apricots","Fruit",241,3.4,62.6,0.5,[["5 halves",18],["10 halves",36]]],
+["Dried cranberries","Fruit",308,0.2,82.8,1.1,[["1/4 cup",40]],"craisins"],
+["Dried mango","Fruit",319,2.5,78.6,1.2,[["3 slices",30]]],
+["Olives","Fruit",115,0.8,6.3,10.7,[["5 olives",22],["10 olives",44]],"kalamata green"],
+["Fruit salad, canned in juice","Fruit",46,0.5,11.9,0.0,[["1/2 cup",119],["1 cup",237]],"tinned fruit cocktail"],
+["Applesauce, unsweetened","Fruit",42,0.2,11.3,0.1,[["1/2 cup",122],["1 pouch",90]],"puree"],
+["Coconut, fresh","Fruit",354,3.3,15.2,33.5,[["1 piece",45]]],
+// Vegetables
+["Broccoli, raw","Vegetables",34,2.8,6.6,0.4,[["1 cup chopped",91],["1 floret",11]]],
+["Broccoli, cooked","Vegetables",35,2.4,7.2,0.4,[["1/2 cup",78],["1 cup",156]],"steamed boiled broccolini"],
+["Carrot, raw","Vegetables",41,0.9,9.6,0.2,[["1 medium",61],["1 cup chopped",128],["1 baby carrot",10]]],
+["Carrot, cooked","Vegetables",35,0.8,8.2,0.2,[["1/2 cup slices",78],["1 cup",156]]],
+["Tomato","Vegetables",18,0.9,3.9,0.2,[["1 medium",123],["1 cup cherry tomatoes",149],["1 slice",20],["1 roma",62]]],
+["Cucumber","Vegetables",15,0.7,3.6,0.1,[["1/2 cup sliced",52],["1 cup sliced",104],["1/2 cucumber",150]],"lebanese continental"],
+["Lettuce, iceberg","Vegetables",14,0.9,3.0,0.1,[["1 cup shredded",72],["1 leaf",15]]],
+["Lettuce, cos","Vegetables",17,1.2,3.3,0.3,[["1 cup shredded",47],["1 leaf",28]],"romaine"],
+["Mixed salad leaves","Vegetables",20,1.5,3.5,0.3,[["1 cup",50],["2 cups",100],["side salad",80]],"spring mix rocket mesclun greens arugula"],
+["Spinach, raw","Vegetables",23,2.9,3.6,0.4,[["1 cup",30],["2 cups",60],["handful",25]],"baby spinach"],
+["Spinach, cooked","Vegetables",23,3.0,3.8,0.3,[["1/2 cup",90],["1 cup",180]],"wilted"],
+["Kale, raw","Vegetables",49,4.3,8.8,0.9,[["1 cup chopped",67]]],
+["Capsicum, red","Vegetables",31,1.0,6.0,0.3,[["1/2 capsicum",60],["1 medium",119],["1 cup chopped",149]],"bell pepper"],
+["Capsicum, green","Vegetables",20,0.9,4.6,0.2,[["1/2 capsicum",60],["1 medium",119]],"bell pepper"],
+["Onion, raw","Vegetables",40,1.1,9.3,0.1,[["1 slice",14],["1/2 cup chopped",80],["1 medium",110]],"brown red"],
+["Onion, cooked","Vegetables",44,1.4,10.2,0.2,[["1/2 cup",105],["1 cup",210]],"sauteed fried caramelised"],
+["Garlic","Vegetables",149,6.4,33.1,0.5,[["1 clove",3],["3 cloves",9]]],
+["Spring onion","Vegetables",32,1.8,7.3,0.2,[["1 stalk",15],["1/4 cup chopped",25]],"scallion green onion shallot"],
+["Potato, baked with skin","Vegetables",93,2.5,21.2,0.1,[["1 medium",173],["1 large",299],["1 small",138]],"jacket"],
+["Potato, boiled","Vegetables",86,1.7,20.0,0.1,[["1 small",90],["1 medium",136],["1 cup",156]],"steamed"],
+["Potato, roasted in oil","Vegetables",149,2.5,22.0,5.5,[["1 piece",40],["1 cup",150],["4 pieces",160]],"roast potatoes"],
+["Mashed potato","Vegetables",113,2.0,16.8,4.2,[["1/2 cup",105],["1 cup",210]],"mash"],
+["Sweet potato, baked","Vegetables",90,2.0,20.7,0.2,[["1/2 cup cubes",100],["1 medium",114],["1 cup cubes",200]],"kumara roast"],
+["Pumpkin, cooked","Vegetables",20,0.7,4.9,0.1,[["1/2 cup",120],["1 cup mashed",245]],"steamed"],
+["Pumpkin, roasted","Vegetables",65,1.0,10.5,2.5,[["1 piece",50],["1 cup cubes",160]],"butternut squash roast"],
+["Zucchini","Vegetables",17,1.2,3.1,0.3,[["1/2 cup sliced",57],["1 cup sliced",113],["1 medium",196]],"courgette"],
+["Mushrooms, raw","Vegetables",22,3.1,3.3,0.3,[["1 mushroom",18],["1 cup sliced",70]],"button"],
+["Mushrooms, cooked","Vegetables",28,2.2,5.3,0.5,[["1/2 cup",78],["1 cup",156]],"sauteed fried"],
+["Cauliflower","Vegetables",25,1.9,5.0,0.3,[["1 cup",107],["1/2 cup",54]],"steamed"],
+["Cabbage","Vegetables",25,1.3,5.8,0.1,[["1 cup chopped",89]],"red white"],
+["Celery","Vegetables",14,0.7,3.0,0.2,[["1 stalk",40],["1 cup chopped",101]]],
+["Corn on the cob","Vegetables",96,3.4,21.0,1.5,[["1 cob",103],["1 cup kernels",157]],"sweetcorn"],
+["Corn, canned","Vegetables",81,2.5,17.6,1.0,[["1/2 cup",82],["1 small can",125]],"tinned sweetcorn kernels"],
+["Green beans, cooked","Vegetables",35,1.9,7.9,0.3,[["1/2 cup",62],["1 cup",125]],"beans"],
+["Peas, green, cooked","Vegetables",78,5.2,14.3,0.3,[["1/2 cup",80],["1 cup",160]],"frozen"],
+["Asparagus, cooked","Vegetables",22,2.4,4.1,0.2,[["1 spear",18],["6 spears",108]]],
+["Eggplant, cooked","Vegetables",35,0.8,8.7,0.2,[["1/2 cup",50],["1 cup",99]],"aubergine"],
+["Beetroot, cooked","Vegetables",44,1.7,10.0,0.2,[["1 slice canned",10],["1/2 cup slices",85]],"beet"],
+["Brussels sprouts, cooked","Vegetables",36,2.6,7.1,0.5,[["1 sprout",21],["1/2 cup",78]]],
+["Edamame","Vegetables",121,11.9,8.9,5.2,[["1/2 cup shelled",78],["1 cup",155]],"soybeans"],
+["Mixed vegetables, frozen, cooked","Vegetables",65,2.6,13.1,0.2,[["1/2 cup",91],["1 cup",182]],"peas corn carrot"],
+["Tomatoes, canned","Vegetables",32,1.6,7.3,0.3,[["1/2 cup",121],["1 can",400]],"tinned crushed diced"],
+["Coleslaw with dressing","Vegetables",153,1.5,13.5,11.1,[["1/2 cup",65],["1 cup",130]]],
+["Sauerkraut","Vegetables",19,0.9,4.3,0.1,[["1/4 cup",36],["1/2 cup",71]]],
+["Bok choy, cooked","Vegetables",12,1.6,1.8,0.2,[["1 cup",170]],"pak choy asian greens choy sum"],
+["Snow peas","Vegetables",42,2.8,7.6,0.2,[["1/2 cup",32],["1 cup",63]],"sugar snap"],
+["Seaweed, nori","Vegetables",35,5.8,5.1,0.3,[["1 sheet",3]]],
+["Kimchi","Vegetables",15,1.1,2.4,0.5,[["1/4 cup",38],["1/2 cup",75]]],
+["Pickles","Vegetables",12,0.5,2.4,0.2,[["1 slice",7],["1 spear",35]],"gherkin dill"],
+["Jalapeño / chilli","Vegetables",29,0.9,6.5,0.4,[["1 chilli",14],["1 tbsp sliced",9]],"pepper"],
+["Sun-dried tomatoes in oil","Vegetables",213,5.1,23.3,14.1,[["1 piece",3],["1/4 cup",28]]],
+["Avocado, see Fruit","Vegetables",160,2.0,8.5,14.7,[["1/2 avocado",100]],"avo"],
+// Bread & grains
+["Bread, white","Bread & grains",266,8.9,50.6,3.3,[["1 slice",25],["1 thick slice",38],["2 slices",50]],"toast sandwich"],
+["Bread, wholemeal","Bread & grains",252,12.5,42.7,3.5,[["1 slice",35],["1 thin slice",28],["2 slices",70]],"whole wheat brown toast"],
+["Bread, multigrain","Bread & grains",265,13.4,43.3,4.2,[["1 slice",35],["2 slices",70]],"wholegrain seeded toast"],
+["Sourdough","Bread & grains",272,10.8,51.9,2.4,[["1 slice",50],["1 small slice",32]],"toast"],
+["Bread roll","Bread & grains",293,9.0,52.0,4.6,[["1 roll",50],["1 burger bun",55],["1 hot dog bun",45]],"bun brioche"],
+["Bagel","Bread & grains",250,10.2,49.5,1.5,[["1 bagel",100],["1/2 bagel",50]]],
+["English muffin","Bread & grains",235,7.7,46.0,1.7,[["1 muffin",57],["1/2 muffin",28]]],
+["Crumpet","Bread & grains",200,6.5,40.0,1.0,[["1 crumpet",50]]],
+["Tortilla / wrap","Bread & grains",304,8.0,50.0,7.9,[["1 medium (20 cm)",45],["1 large (25 cm)",72],["1 mini",30]],"flour burrito mission"],
+["Pita bread","Bread & grains",275,9.1,55.7,1.2,[["1 large",60],["1 small",28]],"lebanese pocket flatbread"],
+["Naan","Bread & grains",291,9.6,50.4,5.6,[["1 naan",90],["1/2 naan",45]],"roti"],
+["Garlic bread","Bread & grains",350,8.0,43.0,16.0,[["1 slice",40],["2 slices",80]]],
+["Rice, white, cooked","Bread & grains",130,2.7,28.2,0.3,[["1/2 cup",79],["1 cup",158],["1 small bowl",200]],"jasmine basmati steamed sushi"],
+["Rice, brown, cooked","Bread & grains",123,2.7,25.6,1.0,[["1/2 cup",101],["1 cup",202]]],
+["Pasta, cooked","Bread & grains",158,5.8,30.9,0.9,[["1/2 cup",70],["1 cup",140],["1 plate",250]],"spaghetti penne fusilli macaroni fettuccine"],
+["Pasta, wholemeal, cooked","Bread & grains",149,5.3,30.1,1.7,[["1 cup",140]],"whole wheat"],
+["Gnocchi, cooked","Bread & grains",150,3.5,32.0,0.5,[["1 cup",190]]],
+["Egg noodles, cooked","Bread & grains",138,4.5,25.2,2.1,[["1 cup",160]],"hokkien"],
+["Rice noodles, cooked","Bread & grains",108,0.9,24.9,0.2,[["1 cup",176]],"vermicelli pad thai"],
+["Instant noodles, dry","Bread & grains",440,10.1,62.7,17.1,[["1 packet",85],["1 cup noodle",64]],"ramen maggi 2 minute indomie"],
+["Quinoa, cooked","Bread & grains",120,4.4,21.3,1.9,[["1/2 cup",93],["1 cup",185]]],
+["Couscous, cooked","Bread & grains",112,3.8,23.2,0.2,[["1/2 cup",79],["1 cup",157]]],
+["Rice cakes","Bread & grains",387,8.2,81.5,2.8,[["1 cake",9],["2 cakes",18]],"corn thins"],
+["Crackers, water / saltine","Bread & grains",421,9.5,74.0,8.9,[["1 cracker",3],["5 crackers",15]],"saladas sao jatz cruskits"],
+["Rice crackers","Bread & grains",400,7.0,83.0,4.0,[["10 crackers",20],["small handful",20]],"sakata"],
+// Breakfast cereals
+["Oats, rolled, dry","Cereal",379,13.2,67.7,6.5,[["1/3 cup",27],["1/2 cup",40]],"oatmeal porridge uncooked"],
+["Porridge, made with water","Cereal",71,2.5,12.0,1.5,[["1 cup",234],["1 bowl",260]],"oatmeal"],
+["Porridge, made with milk","Cereal",114,4.8,15.3,3.8,[["1 cup",240],["1 bowl",260]],"oatmeal"],
+["Overnight oats (with milk & yoghurt)","Cereal",120,5.5,16.0,3.5,[["1 jar",250]]],
+["Weet-Bix","Cereal",356,12.4,67.0,1.4,[["1 biscuit",15],["2 biscuits",30],["3 biscuits",45]],"weetabix"],
+["Corn flakes","Cereal",357,7.5,84.0,0.4,[["1 cup",28],["1 bowl",40]]],
+["Muesli, natural","Cereal",350,9.0,72.0,5.0,[["1/2 cup",43],["1/3 cup",30]],"untoasted"],
+["Granola / toasted muesli","Cereal",450,10.0,64.0,16.0,[["1/4 cup",28],["1/2 cup",55]],"carman's"],
+["Cheerios","Cereal",357,10.7,71.0,7.0,[["1 cup",28],["1 bowl",40]]],
+["Special K","Cereal",385,18.0,85.0,1.3,[["1 cup",31],["1 bowl",40]]],
+["Rice Bubbles","Cereal",375,5.0,90.0,0.0,[["1 cup",28],["1 bowl",40]],"rice krispies"],
+["Sultana Bran","Cereal",322,8.5,78.0,1.7,[["1 cup",59],["1 bowl",45]],"raisin bran"],
+["Nutri-Grain","Cereal",373,19.0,66.0,2.0,[["1 cup",30],["1 bowl",40]]],
+["Coco Pops","Cereal",380,5.0,86.0,2.0,[["1 cup",30],["1 bowl",40]],"cocoa puffs"],
+// Dairy & eggs
+["Egg, boiled","Dairy & eggs",155,12.6,1.1,10.6,[["1 large",50],["2 large",100],["3 large",150]],"hard boiled whole soft"],
+["Egg, fried","Dairy & eggs",196,13.6,0.8,14.8,[["1 egg",46],["2 eggs",92]]],
+["Egg, scrambled","Dairy & eggs",149,10.0,1.6,11.0,[["1 egg",61],["2 eggs",122],["3 eggs",183]]],
+["Egg, poached","Dairy & eggs",143,12.5,0.7,9.5,[["1 egg",50],["2 eggs",100]]],
+["Egg white","Dairy & eggs",52,10.9,0.7,0.2,[["1 large",33],["3 whites",99]]],
+["Milk, full cream","Dairy & eggs",61,3.2,4.8,3.3,[["splash",30],["1 cup",244],["1 glass",250]],"whole 3.25% dairy"],
+["Milk, reduced fat","Dairy & eggs",50,3.3,4.8,2.0,[["splash",30],["1 cup",244],["1 glass",250]],"lite 2% semi skimmed"],
+["Milk, skim","Dairy & eggs",34,3.4,5.0,0.1,[["splash",30],["1 cup",245],["1 glass",250]],"nonfat no fat"],
+["Soy milk","Dairy & eggs",54,3.3,6.3,1.8,[["splash",30],["1 cup",243]],"vitasoy bonsoy"],
+["Almond milk, unsweetened","Dairy & eggs",15,0.6,0.6,1.1,[["splash",30],["1 cup",240]]],
+["Oat milk","Dairy & eggs",48,1.2,6.7,2.0,[["splash",30],["1 cup",240]],"oatly"],
+["Yoghurt, natural, full fat","Dairy & eggs",61,3.5,4.7,3.3,[["1 tub",170],["1/2 cup",123],["1 cup",245]],"yogurt plain"],
+["Greek yoghurt, plain","Dairy & eggs",97,9.0,4.0,5.0,[["1 tub",170],["1/2 cup",123],["1 cup",245]],"yogurt full fat chobani"],
+["Greek yoghurt, no fat","Dairy & eggs",59,10.2,3.6,0.4,[["1 tub",170],["1/2 cup",123],["1 cup",245]],"yogurt 0% skim yopro"],
+["Yoghurt, fruit, low fat","Dairy & eggs",102,4.4,19.1,1.1,[["1 tub",170],["1 small tub",125]],"yogurt flavoured vanilla strawberry"],
+["Cheese, cheddar","Dairy & eggs",403,24.9,1.3,33.1,[["1 slice",20],["30 g",30],["1/4 cup grated",28],["1 cup grated",113]],"tasty bega"],
+["Cheese, mozzarella","Dairy & eggs",300,22.2,2.2,22.4,[["30 g",30],["1/4 cup shredded",28],["1 cup shredded",112]],"pizza bocconcini"],
+["Cheese, parmesan","Dairy & eggs",431,38.5,4.1,28.6,[["1 tbsp grated",5],["1/4 cup",25]],"parmigiano"],
+["Cheese, feta","Dairy & eggs",264,14.2,4.1,21.3,[["30 g",30],["1/4 cup crumbled",38]],"danish greek"],
+["Cheese, Swiss","Dairy & eggs",380,26.9,5.4,27.8,[["1 slice",28]],"jarlsberg gouda edam"],
+["Cheese, brie","Dairy & eggs",334,20.8,0.5,27.7,[["30 g",30],["1 wedge",40]],"camembert"],
+["Cheese, halloumi","Dairy & eggs",321,22.0,2.0,25.0,[["1 slice",30],["3 slices",90]],"grilled"],
+["Cream cheese","Dairy & eggs",342,5.9,4.1,34.2,[["1 tbsp",15],["2 tbsp",30]],"philadelphia"],
+["Cottage cheese","Dairy & eggs",98,11.1,3.4,4.3,[["1/2 cup",113],["1 cup",226]]],
+["Ricotta","Dairy & eggs",174,11.3,3.0,13.0,[["1/4 cup",62],["1/2 cup",124]]],
+["Butter","Fats & oils",717,0.9,0.1,81.1,[["thin spread",7],["1 tsp",5],["1 tbsp",14]]],
+["Margarine","Fats & oils",717,0.2,0.7,80.7,[["thin spread",7],["1 tsp",5],["1 tbsp",14]],"nuttelex flora spread"],
+["Cream, thickened","Dairy & eggs",340,2.8,2.8,36.1,[["1 tbsp",15],["1/4 cup",60]],"heavy whipping double pouring"],
+["Sour cream","Dairy & eggs",198,2.4,4.6,19.4,[["1 tbsp",12],["2 tbsp",24]]],
+["Ice cream, vanilla","Snacks & sweets",207,3.5,23.6,11.0,[["1 scoop",72],["1/2 cup",66],["2 scoops",144]],"chocolate gelato"],
+["Custard","Snacks & sweets",96,3.1,15.5,2.4,[["1/2 cup",125],["1 cup",250]],"pauls"],
+// Meat & poultry
+["Chicken breast, cooked","Meat & poultry",165,31.0,0.0,3.6,[["1 small breast",120],["1 large breast",180],["1 cup diced",140],["1/2 breast",90]],"grilled skinless poached"],
+["Chicken thigh, skinless, cooked","Meat & poultry",209,25.9,0.0,10.9,[["1 thigh",90],["2 thighs",180]],"boneless fillet"],
+["Chicken thigh, with skin, roasted","Meat & poultry",247,25.1,0.0,15.5,[["1 thigh",100],["2 thighs",200]]],
+["Chicken wings, roasted","Meat & poultry",290,26.9,0.0,19.5,[["1 wing",34],["6 wings",204]],"bbq buffalo"],
+["Chicken drumstick, roasted","Meat & poultry",216,27.0,0.0,11.2,[["1 drumstick",72],["2 drumsticks",144]]],
+["Roast chicken, meat & skin","Meat & poultry",239,27.3,0.0,13.6,[["1 cup chopped",140],["1/4 chicken",200]],"rotisserie bbq chook whole"],
+["Chicken mince, cooked","Meat & poultry",189,23.3,0.0,10.2,[["100 g",100],["1 cup",150]],"ground"],
+["Chicken schnitzel, crumbed","Meat & poultry",250,21.0,14.0,12.0,[["1 schnitzel",180],["1/2 schnitzel",90]],"crumbed chicken fried"],
+["Chicken nuggets","Fast food",296,15.3,17.0,19.0,[["1 nugget",17],["6 nuggets",100],["10 nuggets",170]],"mcnuggets tenders"],
+["Turkey breast, roasted","Meat & poultry",135,30.1,0.0,0.7,[["1 slice",28],["100 g",100]]],
+["Turkey, deli sliced","Meat & poultry",104,17.0,4.0,2.0,[["1 slice",28],["3 slices",84]]],
+["Turkey mince, cooked","Meat & poultry",213,27.0,0.0,11.6,[["100 g",100],["1 cup",150]],"ground"],
+["Beef mince, regular, cooked","Meat & poultry",254,25.8,0.0,16.8,[["100 g",100],["1 patty",85],["1 cup",150]],"ground 80/20 hamburger"],
+["Beef mince, lean, cooked","Meat & poultry",171,26.2,0.0,6.6,[["100 g",100],["1 patty",85],["1 cup",150]],"ground 95/5 heart smart extra lean"],
+["Steak, lean, grilled","Meat & poultry",183,29.2,0.0,6.4,[["1 small steak",150],["1 medium steak",200],["1 large steak",300]],"sirloin porterhouse rump fillet beef eye"],
+["Steak, scotch fillet / rib eye","Meat & poultry",280,24.0,0.0,20.0,[["1 steak",250],["1 small steak",180]],"beef ribeye t-bone"],
+["Roast beef, lean","Meat & poultry",178,29.6,0.0,6.1,[["1 slice",30],["100 g",100]],"silverside deli"],
+["Lamb chops, grilled","Meat & poultry",294,25.2,0.0,20.7,[["1 chop",60],["2 chops",120],["3 chops",180]],"loin cutlets"],
+["Lamb leg, roasted, lean","Meat & poultry",191,28.3,0.0,7.7,[["1 slice",40],["100 g",100]],"roast lamb"],
+["Lamb mince, cooked","Meat & poultry",283,24.8,0.0,19.7,[["100 g",100],["1 cup",150]],"ground"],
+["Pork chop, lean, grilled","Meat & poultry",196,27.7,0.0,8.6,[["1 chop",130]],"loin cutlet"],
+["Pork tenderloin, roasted","Meat & poultry",143,26.2,0.0,3.5,[["100 g",100],["1 slice",30]],"fillet"],
+["Pork belly, roasted","Meat & poultry",500,11.0,0.0,50.0,[["1 slice",50],["100 g",100]],"crackling"],
+["Pulled pork","Meat & poultry",220,22.0,3.0,13.5,[["1/2 cup",90],["1 cup",180]],"bbq"],
+["Bacon, cooked","Meat & poultry",541,37.0,1.4,41.8,[["1 rasher",25],["2 rashers",50],["1 thin slice",8]],"streaky middle short cut"],
+["Ham, sliced","Meat & poultry",107,16.9,1.6,3.3,[["1 slice",28],["2 slices",56]],"deli leg shaved"],
+["Sausages, pork","Meat & poultry",325,18.5,1.5,27.0,[["1 thick sausage",60],["1 thin sausage",35],["1 chipolata",25]],"snag banger bratwurst"],
+["Sausages, beef","Meat & poultry",330,16.0,3.0,28.0,[["1 thick sausage",60],["1 thin sausage",35]],"snag banger"],
+["Hot dog / frankfurt","Meat & poultry",290,10.3,4.2,26.0,[["1 frankfurt",50],["1 cocktail frank",15]],"frankfurter wiener"],
+["Salami","Meat & poultry",407,22.6,1.6,33.7,[["1 slice",10],["5 slices",50]],"chorizo"],
+["Pepperoni","Meat & poultry",504,19.3,1.2,46.0,[["10 slices",25]]],
+["Prosciutto","Meat & poultry",250,28.0,0.3,15.0,[["1 slice",15],["3 slices",45]],"parma"],
+["Meatballs, beef","Meals",240,16.0,8.0,16.0,[["1 meatball",30],["4 meatballs",120]]],
+["Beef liver, cooked","Meat & poultry",175,26.5,5.1,4.7,[["100 g",100]],"offal"],
+["Kangaroo, cooked","Meat & poultry",150,30.0,0.0,2.5,[["1 steak",150],["100 g",100]],"roo"],
+// Seafood
+["Salmon, cooked","Seafood",206,22.1,0.0,12.4,[["1 small fillet",100],["1 fillet",150],["1 large fillet",200]],"atlantic grilled baked pan fried"],
+["Salmon, smoked","Seafood",117,18.3,0.0,4.3,[["1 slice",28],["50 g",50]],"lox"],
+["Salmon, canned","Seafood",139,23.6,0.0,4.9,[["1 small tin drained",70],["1/2 cup",80]],"tinned pink red"],
+["Tuna, canned in springwater","Seafood",116,25.5,0.0,0.8,[["1 small tin drained",70],["1/2 cup",77],["1 cup",154]],"tinned in water brine"],
+["Tuna, canned in oil","Seafood",198,29.1,0.0,8.2,[["1 small tin drained",70],["1/2 cup",77]],"tinned"],
+["Tuna steak, cooked","Seafood",130,29.2,0.0,0.6,[["1 steak",150]],"yellowfin seared"],
+["White fish, cooked","Seafood",105,22.8,0.0,0.9,[["1 small fillet",100],["1 fillet",150]],"cod basa barramundi snapper hake ling flathead grilled baked"],
+["Fish, battered, fried","Fast food",230,15.0,15.0,12.0,[["1 piece",120],["1 large piece",170]],"fish and chips takeaway shop"],
+["Fish, crumbed, fried","Fast food",220,17.0,13.0,11.0,[["1 fillet",120]],"pan fried"],
+["Fish fingers","Seafood",260,11.0,24.0,13.0,[["1 finger",28],["4 fingers",112],["6 fingers",168]],"fish sticks birds eye"],
+["Prawns, cooked","Seafood",99,24.0,0.2,0.3,[["1 large prawn",7],["6 large prawns",42],["1 cup",145]],"shrimp king"],
+["Calamari, fried","Seafood",175,17.9,7.8,7.5,[["1 ring",10],["1 serve",85]],"squid salt and pepper"],
+["Sardines, canned in oil","Seafood",208,24.6,0.0,11.5,[["1 small tin drained",90]],"tinned"],
+["Mussels, cooked","Seafood",172,23.8,7.4,4.5,[["10 mussels",150]]],
+["Oysters, raw","Seafood",81,9.5,5.0,2.3,[["1 oyster",14],["6 oysters",84],["12 oysters",168]],"dozen"],
+["Crab meat, cooked","Seafood",102,20.2,0.0,1.8,[["1/2 cup",68]]],
+["Scallops, cooked","Seafood",111,20.5,5.4,0.8,[["1 scallop",15],["6 scallops",90]]],
+// Legumes, nuts & seeds
+["Chickpeas, cooked","Legumes, nuts & seeds",164,8.9,27.4,2.6,[["1/2 cup",82],["1 cup",164],["1 can drained",240]],"garbanzo tinned"],
+["Lentils, cooked","Legumes, nuts & seeds",116,9.0,20.1,0.4,[["1/2 cup",99],["1 cup",198]],"dal dhal red brown"],
+["Black beans, cooked","Legumes, nuts & seeds",132,8.9,23.7,0.5,[["1/2 cup",86],["1 cup",172]],"tinned"],
+["Kidney beans, cooked","Legumes, nuts & seeds",127,8.7,22.8,0.5,[["1/2 cup",89],["1 cup",177]],"red tinned four bean mix"],
+["Baked beans","Legumes, nuts & seeds",94,4.8,20.5,0.4,[["1/2 cup",127],["1 small can",220],["1 cup",254]],"heinz tinned"],
+["Tofu, firm","Legumes, nuts & seeds",144,17.3,2.8,8.7,[["100 g",100],["1/2 cup",126]]],
+["Tofu, silken","Legumes, nuts & seeds",61,7.2,1.8,3.7,[["1/2 cup",124]],"soft"],
+["Tempeh","Legumes, nuts & seeds",192,20.3,7.6,10.8,[["1 slice",28],["100 g",100]]],
+["Peanuts, roasted","Legumes, nuts & seeds",585,23.7,21.5,49.7,[["small handful",28],["1/4 cup",37]],"nuts salted"],
+["Almonds","Legumes, nuts & seeds",579,21.2,21.6,49.9,[["10 almonds",12],["small handful (23)",28]],"nuts"],
+["Walnuts","Legumes, nuts & seeds",654,15.2,13.7,65.2,[["small handful",28],["1/4 cup",29]],"nuts"],
+["Cashews, roasted","Legumes, nuts & seeds",574,15.3,32.7,46.4,[["small handful (18)",28],["1/4 cup",32]],"nuts"],
+["Pistachios","Legumes, nuts & seeds",560,20.2,27.2,45.3,[["small handful",28]],"nuts"],
+["Macadamias","Legumes, nuts & seeds",718,7.9,13.8,75.8,[["small handful (11)",28]],"nuts"],
+["Brazil nuts","Legumes, nuts & seeds",659,14.3,11.7,67.1,[["1 nut",5],["3 nuts",15]],"nuts"],
+["Mixed nuts, roasted","Legumes, nuts & seeds",607,17.3,25.4,54.1,[["small handful",28],["1/4 cup",34]],"nuts"],
+["Trail mix","Snacks & sweets",462,13.8,44.9,29.4,[["small handful",30],["1/4 cup",37]],"scroggin fruit and nut"],
+["Chia seeds","Legumes, nuts & seeds",486,16.5,42.1,30.7,[["1 tbsp",12],["2 tbsp",24]]],
+["Flaxseed, ground","Legumes, nuts & seeds",534,18.3,28.9,42.2,[["1 tbsp",7]],"linseed lsa"],
+["Sunflower seeds","Legumes, nuts & seeds",582,19.3,24.1,49.8,[["1 tbsp",9],["1/4 cup",32]]],
+["Pumpkin seeds","Legumes, nuts & seeds",574,29.8,14.7,49.1,[["1 tbsp",10],["1/4 cup",32]],"pepitas"],
+["Peanut butter","Sauces & spreads",588,25.1,19.6,50.4,[["thin spread",10],["1 tbsp",16],["2 tbsp",32]],"pb"],
+["Almond butter","Sauces & spreads",614,21.0,18.8,55.5,[["1 tbsp",16]]],
+["Tahini","Sauces & spreads",595,17.0,21.2,53.8,[["1 tbsp",15]]],
+["Hummus","Sauces & spreads",166,7.9,14.3,9.6,[["1 tbsp",15],["2 tbsp",30],["1/4 cup",60]],"hommus dip"],
+["Falafel","Meals",333,13.3,31.8,17.8,[["1 ball",17],["4 balls",68]]],
+// Fats, oils, sauces & spreads
+["Olive oil","Fats & oils",884,0.0,0.0,100.0,[["drizzle",5],["1 tsp",4.5],["1 tbsp",13.5]],"extra virgin"],
+["Vegetable oil","Fats & oils",884,0.0,0.0,100.0,[["1 tsp",4.5],["1 tbsp",13.6]],"canola sunflower rice bran cooking spray"],
+["Coconut oil","Fats & oils",892,0.0,0.0,99.1,[["1 tsp",4.5],["1 tbsp",13.6]]],
+["Mayonnaise","Sauces & spreads",680,1.0,0.6,74.9,[["1 tsp",5],["1 tbsp",14]],"aioli whole egg"],
+["Mayonnaise, light","Sauces & spreads",238,0.4,9.4,22.2,[["1 tbsp",15]],"lite 97% fat free"],
+["Tomato sauce / ketchup","Sauces & spreads",101,1.0,27.4,0.1,[["1 squeeze",10],["1 tbsp",17]],"catsup"],
+["Mustard","Sauces & spreads",60,3.7,5.8,3.3,[["1 tsp",5]],"dijon wholegrain hot english"],
+["Soy sauce","Sauces & spreads",53,8.1,4.9,0.6,[["1 tsp",6],["1 tbsp",16]],"tamari"],
+["BBQ sauce","Sauces & spreads",172,0.8,40.8,0.6,[["1 tbsp",17]],"barbecue"],
+["Sweet chilli sauce","Sauces & spreads",227,0.5,53.0,0.5,[["1 tbsp",20]]],
+["Hot sauce / sriracha","Sauces & spreads",100,2.0,20.0,1.0,[["1 tsp",5],["1 tbsp",15]],"chilli tabasco"],
+["Pasta sauce, tomato","Sauces & spreads",51,1.4,8.1,1.6,[["1/4 cup",66],["1/2 cup",132]],"marinara napolitana passata"],
+["Pesto","Sauces & spreads",420,5.7,7.5,41.0,[["1 tbsp",16],["2 tbsp",32]],"basil"],
+["Salad dressing, ranch","Sauces & spreads",430,1.0,7.7,44.5,[["1 tbsp",15],["2 tbsp",30]],"creamy"],
+["Salad dressing, Italian","Sauces & spreads",240,0.4,10.4,21.0,[["1 tbsp",15],["2 tbsp",30]]],
+["Salad dressing, Caesar","Sauces & spreads",542,1.8,2.9,57.8,[["1 tbsp",15],["2 tbsp",30]]],
+["Vinaigrette","Sauces & spreads",449,0.0,2.5,50.1,[["1 tbsp",16]],"oil and vinegar french dressing"],
+["Balsamic vinegar","Sauces & spreads",88,0.5,17.0,0.0,[["1 tbsp",16]],"glaze"],
+["Honey","Sauces & spreads",304,0.3,82.4,0.0,[["1 tsp",7],["1 tbsp",21]]],
+["Maple syrup","Sauces & spreads",260,0.0,67.0,0.1,[["1 tbsp",20]]],
+["Sugar","Sauces & spreads",387,0.0,100.0,0.0,[["1 tsp",4],["1 tbsp",12.5]],"white raw brown caster"],
+["Jam","Sauces & spreads",278,0.4,68.9,0.1,[["1 tsp",7],["1 tbsp",20]],"marmalade jelly strawberry"],
+["Nutella","Sauces & spreads",539,6.3,57.5,30.9,[["1 tbsp",19],["2 tbsp",37]],"hazelnut spread"],
+["Vegemite","Sauces & spreads",181,25.0,20.0,0.9,[["thin scrape",3],["1 tsp",5]],"marmite"],
+["Guacamole","Sauces & spreads",150,2.0,8.0,13.0,[["2 tbsp",30],["1/4 cup",60]],"avocado dip"],
+["Salsa","Sauces & spreads",36,1.5,7.0,0.2,[["2 tbsp",32],["1/4 cup",65]]],
+["Gravy","Sauces & spreads",53,3.8,4.8,2.4,[["1/4 cup",58],["1/2 cup",116]]],
+["Tzatziki","Sauces & spreads",90,3.5,4.0,7.0,[["2 tbsp",30]],"dip"],
+["Satay / peanut sauce","Sauces & spreads",250,7.0,15.0,18.0,[["2 tbsp",35]]],
+["Coconut milk, canned","Sauces & spreads",197,2.0,2.8,21.3,[["1/4 cup",60],["1/2 cup",120]],"cream"],
+["Cream cheese, see Dairy","Sauces & spreads",342,5.9,4.1,34.2,[["1 tbsp",15]],"philadelphia"],
+// Snacks, sweets & bakery
+["Potato chips","Snacks & sweets",536,6.6,52.9,34.6,[["small handful",28],["small bag",45],["large bag",175]],"crisps smiths kettle red rock"],
+["Corn chips","Snacks & sweets",500,7.0,64.0,25.0,[["small handful",28],["small bag",45]],"doritos tortilla ccs"],
+["Popcorn, air-popped","Snacks & sweets",387,12.9,77.8,4.5,[["1 cup",8],["3 cups",24]]],
+["Popcorn, microwave butter","Snacks & sweets",535,8.4,56.0,30.0,[["1 cup",11],["1 bag",80]],"cinema"],
+["Pretzels","Snacks & sweets",381,10.2,79.6,2.6,[["small handful",28]]],
+["Muesli bar","Snacks & sweets",420,6.0,70.0,14.0,[["1 bar",24],["1 large bar",35]],"granola bar uncle tobys"],
+["Protein bar","Snacks & sweets",350,33.0,35.0,11.0,[["1 bar",60],["1 small bar",45]],"quest musashi"],
+["Chocolate, milk","Snacks & sweets",535,7.7,59.4,29.7,[["1 row (4 squares)",25],["1 small bar",45],["1 block",180]],"cadbury dairy milk lindt"],
+["Chocolate, dark","Snacks & sweets",598,7.8,45.9,42.6,[["1 square",10],["2 squares",20]],"70% 85% lindt"],
+["Chocolate chip cookie","Bakery",488,5.6,65.6,23.6,[["1 small biscuit",16],["1 cookie",30],["1 cafe cookie",60]],"biscuit subway"],
+["Tim Tam","Snacks & sweets",519,5.5,67.0,25.7,[["1 biscuit",18],["2 biscuits",37]],"arnotts"],
+["Plain sweet biscuits","Snacks & sweets",460,6.5,70.0,17.0,[["1 biscuit",10],["2 biscuits",20]],"arrowroot milk shortbread marie scotch finger anzac"],
+["Doughnut, glazed","Bakery",417,6.4,46.6,22.8,[["1 doughnut",60],["1 cinnamon doughnut",50]],"donut krispy kreme"],
+["Muffin, blueberry / choc chip","Bakery",377,5.5,55.0,15.0,[["1 cafe muffin",110],["1 small muffin",57]]],
+["Banana bread","Bakery",326,4.3,54.6,10.5,[["1 thin slice",50],["1 cafe slice",80]]],
+["Scone","Bakery",350,7.0,55.0,11.0,[["1 scone",55]],"with jam cream"],
+["Chocolate cake","Bakery",367,4.0,54.6,16.4,[["1 slice",80],["1 large slice",120]],"mud cake birthday"],
+["Carrot cake, iced","Bakery",410,4.5,50.0,22.0,[["1 slice",90]]],
+["Cheesecake","Bakery",321,5.5,25.5,22.5,[["1 slice",80],["1 large slice",120]]],
+["Brownie","Bakery",405,5.0,64.0,16.0,[["1 brownie",56]]],
+["Apple pie","Bakery",237,1.9,34.0,11.0,[["1 slice",125]]],
+["Lamington","Bakery",360,5.0,55.0,13.0,[["1 lamington",70]]],
+["Pancakes","Bakery",227,6.4,28.3,9.7,[["1 small pancake",38],["1 pancake (15 cm)",77],["stack of 3",230]],"pikelets"],
+["Waffle","Bakery",291,7.9,32.9,14.1,[["1 waffle",75]]],
+["Croissant, see Bread","Bakery",406,8.2,45.8,21.0,[["1 croissant",57]]],
+["Meat pie","Fast food",246,8.3,23.0,13.0,[["1 pie",175],["1 party pie",50]],"four n twenty bakery"],
+["Sausage roll","Fast food",290,9.0,22.0,18.0,[["1 large roll",120],["1 party roll",30]],"bakery"],
+["Frozen yoghurt","Snacks & sweets",127,3.0,22.0,3.6,[["1/2 cup",72],["1 small cup",120]],"froyo yogurt"],
+["Lollies","Snacks & sweets",375,0.5,93.0,0.1,[["10 jelly beans",11],["small handful",30],["1 snake",10]],"candy sweets snakes gummies jelly beans sour"],
+["M&M's","Snacks & sweets",492,4.3,71.0,21.0,[["small handful",30],["small bag",45]],"smarties"],
+["Snickers","Snacks & sweets",488,7.5,60.5,23.5,[["1 fun size",18],["1 bar",50]],"mars bar"],
+["Kit Kat","Snacks & sweets",518,6.5,64.0,26.0,[["2 fingers",21],["4 fingers",45]]],
+["Milk chocolate, see Chocolate","Snacks & sweets",535,7.7,59.4,29.7,[["1 row",25]],"freddo caramello"],
+// Drinks
+["Water","Drinks",0,0.0,0.0,0.0,[["1 glass",250],["1 bottle",600]],"sparkling soda mineral"],
+["Coffee, black","Drinks",1,0.1,0.0,0.0,[["1 cup",240],["1 long black",200]],"americano instant"],
+["Espresso","Drinks",9,0.1,1.7,0.2,[["1 shot",30],["double shot",60]],"short black"],
+["Latte / flat white, full cream","Drinks",44,2.3,3.5,2.3,[["1 small",200],["1 regular",250],["1 large",350]],"coffee cappuccino"],
+["Latte / flat white, skim","Drinks",25,2.5,3.6,0.1,[["1 regular",250],["1 large",350]],"coffee skinny"],
+["Cappuccino","Drinks",36,1.9,2.8,1.9,[["1 regular",250],["1 large",350]],"coffee"],
+["Latte, oat milk","Drinks",36,0.9,5.0,1.5,[["1 regular",250],["1 large",350]],"coffee flat white"],
+["Latte, almond milk","Drinks",12,0.5,0.5,0.8,[["1 regular",250],["1 large",350]],"coffee flat white"],
+["Iced coffee (with milk & ice cream)","Drinks",85,3.0,12.0,2.8,[["1 regular",400],["1 bottle",500]],"farmers union"],
+["Tea","Drinks",1,0.0,0.3,0.0,[["1 cup",240]],"black green herbal peppermint"],
+["Tea with milk","Drinks",8,0.4,0.6,0.4,[["1 cup",250]],"english breakfast chai"],
+["Hot chocolate, with milk","Drinks",76,3.5,10.5,2.5,[["1 cup",250]],"cocoa milo mocha"],
+["Orange juice","Drinks",45,0.7,10.4,0.2,[["1 glass",250],["1 small bottle",350]],"oj"],
+["Apple juice","Drinks",46,0.1,11.3,0.1,[["1 glass",250],["1 popper",200]],"juice box"],
+["Soft drink","Drinks",39,0.0,10.6,0.0,[["1 glass",250],["1 can",375],["1 bottle",600]],"coke cola sprite fanta lemonade soda pepsi solo"],
+["Diet soft drink","Drinks",0,0.0,0.0,0.0,[["1 can",375],["1 bottle",600]],"coke zero pepsi max no sugar"],
+["Energy drink","Drinks",45,0.4,11.0,0.0,[["1 can",250],["1 large can",500]],"red bull monster v mother"],
+["Sports drink","Drinks",25,0.0,6.0,0.0,[["1 bottle",600]],"gatorade powerade"],
+["Beer, full strength","Drinks",43,0.5,3.6,0.0,[["1 middy",285],["1 stubby",375],["1 schooner",425],["1 pint",570]],"lager ale"],
+["Beer, mid / light","Drinks",29,0.2,1.6,0.0,[["1 stubby",375],["1 schooner",425],["1 pint",570]],"mid strength light"],
+["Cider","Drinks",50,0.0,4.0,0.0,[["1 bottle",330],["1 pint",570]],"apple"],
+["Wine, red","Drinks",85,0.1,2.6,0.0,[["1 small glass",100],["1 glass",150],["1 bottle",750]],"shiraz cabernet merlot pinot"],
+["Wine, white","Drinks",82,0.1,2.6,0.0,[["1 small glass",100],["1 glass",150],["1 bottle",750]],"sauvignon chardonnay rose prosecco sparkling champagne"],
+["Spirits","Drinks",231,0.0,0.0,0.0,[["1 nip",30],["1 double",60]],"vodka gin whisky rum tequila bourbon shot"],
+["Gin & tonic","Drinks",75,0.0,7.0,0.0,[["1 glass",200]],"g&t cocktail"],
+["Chocolate milk","Drinks",83,3.2,10.3,3.4,[["1 glass",250],["1 small carton",300],["1 bottle",600]],"big m oak breaka"],
+["Milkshake","Drinks",112,3.9,17.8,3.0,[["1 small",300],["1 regular",400]],"thickshake"],
+["Smoothie, fruit","Drinks",70,2.5,13.0,1.0,[["1 small",250],["1 regular",350],["1 large",500]],"boost banana berry"],
+["Whey protein powder","Drinks",400,80.0,10.0,5.0,[["1 scoop",30],["2 scoops",60]],"shake isolate"],
+["Coconut water","Drinks",19,0.7,3.7,0.2,[["1 cup",240],["1 bottle",330]]],
+["Kombucha","Drinks",13,0.0,3.0,0.0,[["1 bottle",330]]],
+["Bubble tea","Drinks",80,1.0,17.0,1.5,[["1 small",350],["1 regular",500]],"boba milk tea pearl"],
+// Meals, fast food & takeaway
+["Pizza, cheese / margherita","Fast food",266,11.4,33.3,9.7,[["1 slice",107],["2 slices",214],["3 slices",321]],"dominos"],
+["Pizza, pepperoni / supreme","Fast food",298,13.0,32.6,12.8,[["1 slice",111],["2 slices",222],["3 slices",333]],"meat lovers hawaiian dominos"],
+["Hamburger, plain","Fast food",254,13.0,31.0,9.0,[["1 burger",100]],"mcdonalds maccas"],
+["Cheeseburger","Fast food",265,13.3,28.0,10.6,[["1 burger",113],["double",165]],"mcdonalds maccas"],
+["Big Mac","Fast food",251,11.4,20.5,13.7,[["1 burger",219]],"double burger mcdonalds"],
+["Beef burger with cheese, large","Fast food",250,13.0,23.0,12.0,[["1 burger",200],["1 large burger",260]],"quarter pounder whopper grill'd pub burger"],
+["Crumbed chicken burger","Fast food",230,8.0,22.4,12.0,[["1 burger",174]],"mcchicken zinger"],
+["Grilled chicken burger","Fast food",190,14.0,22.0,5.0,[["1 burger",200]],"wrap"],
+["Hot chips / fries","Fast food",312,3.4,41.4,14.7,[["1 small",71],["1 medium",114],["1 large",150]],"french fries wedges"],
+["Fried chicken, breast piece","Fast food",240,24.0,6.8,13.0,[["1 small piece",80],["1 piece",160]],"kfc original recipe"],
+["Burrito, bean & cheese","Fast food",206,7.5,27.0,7.5,[["1 burrito",220],["1 large burrito",320]],"guzman zambrero mad mex"],
+["Nachos with cheese","Fast food",306,8.0,32.0,17.0,[["1 serve",200],["1 large serve",350]],"corn chips"],
+["Kebab with salad & sauce","Fast food",185,12.0,16.0,8.0,[["1 kebab",350],["1 small kebab",250]],"doner souvlaki gyros halal snack pack hsp"],
+["Spring roll, fried","Fast food",240,6.0,28.0,12.0,[["1 mini roll",20],["1 roll",60]],"chiko"],
+["Dim sim, steamed","Fast food",180,8.0,20.0,7.0,[["1 dim sim",45]]],
+["Sushi roll","Meals",150,5.0,25.0,3.5,[["1 piece",30],["1 hand roll",100],["8 pieces",240]],"california nori teriyaki chicken tuna salmon"],
+["Rice paper rolls","Meals",100,6.0,15.0,1.5,[["1 roll",90],["2 rolls",180]],"vietnamese fresh"],
+["Dumplings, pork","Meals",175,8.0,20.0,7.0,[["1 dumpling",25],["6 dumplings",150]],"gyoza steamed wonton"],
+["Fried rice","Meals",165,5.5,25.0,5.0,[["1 cup",198],["1 serve",350]],"chinese special egg"],
+["Pad thai","Meals",165,7.0,20.0,6.5,[["1 serve",350]],"thai noodles"],
+["Butter chicken","Meals",170,12.0,6.0,11.0,[["1 cup",240],["1 serve with rice",450]],"curry indian tikka masala korma"],
+["Thai curry (green / red)","Meals",120,9.0,5.0,7.5,[["1 cup",240],["1 serve",350]],"massaman coconut"],
+["Chicken & vegetable stir-fry","Meals",100,10.0,6.0,4.0,[["1 cup",200],["1 serve",350]],"stirfry beef"],
+["Spaghetti bolognese","Meals",130,7.0,15.0,4.5,[["1 cup",250],["1 plate",400]],"spag bol pasta"],
+["Lasagne","Meals",135,8.0,12.0,6.0,[["1 piece",250],["1 large piece",350]],"lasagna"],
+["Mac and cheese","Meals",170,6.0,25.0,5.0,[["1 cup",200]],"macaroni"],
+["Chicken parmigiana","Meals",220,17.0,12.0,12.0,[["1 parmi",350],["1/2 parmi",175]],"parma pub"],
+["Roast dinner (meat, potato, veg)","Meals",140,12.0,11.0,5.0,[["1 plate",450]],"sunday roast"],
+["Chicken Caesar salad","Meals",150,12.0,6.0,9.0,[["1 bowl",300]]],
+["Garden salad with dressing","Meals",60,1.5,5.0,4.0,[["side salad",100],["1 bowl",200]],"greek"],
+["Poke bowl","Meals",125,8.0,16.0,3.5,[["1 bowl",450]],"salmon tuna"],
+["Acai bowl","Meals",120,2.0,22.0,3.5,[["1 bowl",350]]],
+["Ham, cheese & salad sandwich","Meals",180,12.0,22.0,6.0,[["1 sandwich",180]],"sub"],
+["Chicken wrap","Meals",190,12.0,20.0,7.0,[["1 wrap",220]],"salad"],
+["Toasted cheese sandwich","Meals",350,15.0,33.0,18.0,[["1 sandwich",120]],"jaffle toastie grilled cheese"],
+["Cheese omelette (2 eggs)","Meals",231,14.8,1.5,18.0,[["1 omelette",135]]],
+["Quiche","Meals",300,10.0,20.0,20.0,[["1 slice",150]],"lorraine"],
+["Chicken noodle soup","Meals",25,1.3,3.5,0.6,[["1 cup",241],["1 bowl",400]]],
+["Tomato soup","Meals",32,1.4,6.6,0.6,[["1 cup",244],["1 bowl",400]]],
+["Pumpkin soup","Meals",55,1.5,7.0,2.5,[["1 cup",250],["1 bowl",400]]],
+["Lentil / vegetable soup","Meals",56,3.5,8.5,0.9,[["1 cup",248],["1 bowl",400]],"minestrone"],
+["Pho","Meals",60,4.0,8.0,1.2,[["1 bowl",600]],"vietnamese beef noodle soup laksa"],
+];
 
 const state = { date: todayKey(), view: 'today', profile: null, days: {}, store: null, sample: null, imagesOK: false, aiOff: false, ready: false, profileKey: null, macrosTouched: false, goal: 'maintain' };
 
@@ -924,7 +1358,90 @@ const textPrompt = d => `You are a nutrition estimator inside a calorie tracker.
 const photoPrompt = n => `You are a nutrition estimator inside a calorie tracker. The attached photo shows food or drink a person in Australia is eating. Identify each distinct item, judge the portion from visual cues (plate or bowl size, cutlery, packaging), then estimate calories and macros. Count only what is visible unless the note says otherwise.${n ? `\n\nThe person added this note, which takes priority over what you can see: """${n}"""` : ''}\n\n${SHAPE}`;
 
 function defaultMeal() { const h = new Date().getHours() + new Date().getMinutes() / 60; return h < 10.5 ? 'Breakfast' : h < 14.5 ? 'Lunch' : h < 20.5 ? 'Dinner' : 'Snack'; }
-const MODE_PANELS = ['mode-text', 'mode-photo', 'mode-manual', 'mode-exercise'];
+const MODE_PANELS = ['mode-search', 'mode-text', 'mode-photo', 'mode-manual', 'mode-exercise'];
+
+/* ---------- food search ---------- */
+const FOOD_INDEX = FOODS.map((f, i) => { const nameL = f[0].toLowerCase(); return { i, f, nameL, head: nameL.split(/[,(\/]/)[0].trim(), hay: (f[0] + ' ' + (f[7] || '') + ' ' + f[1]).toLowerCase() }; });
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function searchFoods(q) {
+  const qs = q.toLowerCase().trim();
+  const toks = qs.replace(/[^a-z0-9%&'/ ]+/g, ' ').split(/\s+/).filter(Boolean);
+  if (!toks.length) return [];
+  const out = [];
+  for (const it of FOOD_INDEX) {
+    let score = 0, ok = true;
+    for (const t of toks) {
+      if (!it.hay.includes(t)) { ok = false; break; }
+      if (it.nameL.startsWith(t)) score += 30;
+      else if (new RegExp('(^|[^a-z0-9])' + escRe(t)).test(it.nameL)) score += 20;
+      else if (it.nameL.includes(t)) score += 10;
+      else score += 6;
+    }
+    if (!ok) continue;
+    if (it.nameL === qs) score += 100;
+    if (it.nameL.startsWith(qs)) score += 40;
+    if (it.head === qs) score += 25;
+    score -= it.i / 2000;
+    out.push([score, it.f]);
+  }
+  return out.sort((a, b) => b[0] - a[0]).slice(0, 40).map(x => x[1]);
+}
+let pickFood = null;
+const amtStr = n => (Math.round(n * 100) / 100).toString();
+function renderSearch() {
+  const q = $('#foodQuery').value;
+  const box = $('#foodResults');
+  $('#foodPick').hidden = true; $('#foodQuery').closest('.search-in').hidden = false; box.hidden = false; $('#searchFoot').hidden = false;
+  if (!q.trim()) {
+    const r = recentFoods();
+    box._recent = r;
+    box.innerHTML = r.length
+      ? `<div class="eyebrow">Recent · tap to log again</div>` + r.map((e, i) => `<button class="rrow" data-recent="${i}"><span class="n">${esc(e.name)}</span><span class="s">${esc(e.portion || '')}${e.portion ? ' · ' : ''}P ${num(e.p)} · C ${num(e.c)} · F ${num(e.f)}</span><span class="k">${fmt(e.kcal)}<small>kcal</small></span></button>`).join('')
+      : `<p class="hint">${FOODS.length} common foods and drinks. Type a name, then pick the amount.</p>`;
+    return;
+  }
+  const res = searchFoods(q);
+  box._recent = null;
+  box.innerHTML = res.length
+    ? res.map(f => { const i = FOOD_INDEX.find(x => x.f === f).i; const u = f[6][0]; return `<button class="rrow" data-food="${i}"><span class="n">${esc(f[0])}</span><span class="s">${esc(f[1])} · ${esc(u[0])}</span><span class="k">${fmt(f[2] * u[1] / 100)}<small>kcal</small></span></button>`; }).join('')
+    : `<p class="hint">Nothing matches “${esc(q.trim())}”. Try a simpler word, describe it, or add it by hand.</p>`;
+}
+function showPick(f) {
+  pickFood = f;
+  const units = [...f[6], ['grams', 1]];
+  $('#pickName').textContent = f[0];
+  $('#pickPer').textContent = `${f[1]} · per 100 g: ${fmt(f[2])} kcal, P ${f[3]} · C ${f[4]} · F ${f[5]} g`;
+  const sel = $('#pickUnit'); sel._units = units;
+  sel.innerHTML = units.map((u, i) => `<option value="${i}">${esc(u[0])}${u[0] === 'grams' ? '' : ` (${u[1]} g)`}</option>`).join('');
+  sel.value = '0'; $('#pickAmt').value = '1'; $('#pickMeal').value = defaultMeal();
+  $('#foodResults').hidden = true; $('#foodQuery').closest('.search-in').hidden = true; $('#searchFoot').hidden = true; $('#foodPick').hidden = false;
+  updatePick();
+  setTimeout(() => { const a = $('#pickAmt'); a.focus(); a.select(); }, 30);
+}
+function pickValues() {
+  const units = $('#pickUnit')._units || [['grams', 1]];
+  const u = units[Number($('#pickUnit').value)] || units[0];
+  const amt = Math.max(0, parseFloat($('#pickAmt').value) || 0), grams = amt * u[1], k = grams / 100, f = pickFood;
+  return { amt, unit: u, grams, kcal: Math.round(f[2] * k), p: Math.round(f[3] * k), c: Math.round(f[4] * k), f: Math.round(f[5] * k) };
+}
+function updatePick() {
+  if (!pickFood) return;
+  const v = pickValues();
+  $('#pickKcal').textContent = `${fmt(v.kcal)} kcal`;
+  $('#pickSum').textContent = `${amtStr(v.grams)} g · P ${v.p} · C ${v.c} · F ${v.f} g`;
+  $('#pickAdd').disabled = $('#pickAddMore').disabled = !(v.grams > 0);
+}
+function commitPick(keepOpen) {
+  if (!pickFood) return;
+  const v = pickValues(); if (!(v.grams > 0)) return;
+  const portion = v.unit[0] === 'grams' ? `${amtStr(v.grams)} g` : v.amt === 1 ? v.unit[0] : `${amtStr(v.amt)} × ${v.unit[0]}`;
+  const now = new Date(), day = clone(getDay(state.date));
+  day.entries.push({ id: uid(), name: pickFood[0], portion, kcal: v.kcal, p: v.p, c: v.c, f: v.f, meal: $('#pickMeal').value, time: `${pad(now.getHours())}:${pad(now.getMinutes())}`, source: 'search' });
+  putDay(day);
+  toast(`Logged ${pickFood[0]}`);
+  if (keepOpen) { pickFood = null; $('#foodQuery').value = ''; renderSearch(); setTimeout(() => $('#foodQuery').focus(), 30); }
+  else closeSheet();
+}
 function openSheet(m, entry, kind) {
   editingId = entry ? entry.id : null;
   $('#sheet').hidden = false; document.body.style.overflow = 'hidden';
@@ -948,11 +1465,12 @@ function openSheet(m, entry, kind) {
 }
 function closeSheet() { ctl && ctl.abort(); $('#sheet').hidden = true; document.body.style.overflow = ''; }
 function setMode(m) {
-  if (state.aiOff && m !== 'manual' && m !== 'exercise') m = 'manual';
+  if (state.aiOff && (m === 'text' || m === 'photo')) m = 'search';
   mode = m;
   $$('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
   for (const id of MODE_PANELS) $('#' + id).hidden = id !== 'mode-' + m;
   if (m === 'exercise' && state.aiOff) setExMode('manual');
+  if (m === 'search') { pickFood = null; $('#foodQuery').value = ''; renderSearch(); setTimeout(() => $('#foodQuery').focus(), 50); }
   $('#review').hidden = true; $('#estErr').hidden = true; hideThinking();
 }
 function setExMode(x) {
@@ -961,10 +1479,11 @@ function setExMode(x) {
   $('#review').hidden = true; $('#estErr').hidden = true;
 }
 function applyAiOff() {
-  $$('#modeSeg button').forEach(b => { if (b.dataset.mode !== 'manual') b.disabled = true; });
+  $$('#modeSeg button').forEach(b => { if (b.dataset.mode === 'text' || b.dataset.mode === 'photo') b.disabled = true; });
   $$('#exSeg button').forEach(b => { if (b.dataset.ex !== 'manual') b.disabled = true; });
   $('#openText').disabled = true; $('#openPhoto').disabled = true;
-  if (mode !== 'exercise') setMode('manual'); else setExMode('manual');
+  $('#toDescribe').hidden = true;
+  if (mode === 'exercise') setExMode('manual'); else if (mode === 'text' || mode === 'photo') setMode('search');
 }
 function showThinking(msg) { $('#thinkMsg').textContent = msg; $('#thinking').hidden = false; $('#estErr').hidden = true; $('#review').hidden = true; $('#estimateText').disabled = true; $('#estimatePhoto').disabled = true; $('#estimateEx').disabled = true; }
 function hideThinking() { $('#thinking').hidden = true; $('#estimateText').disabled = false; $('#estimatePhoto').disabled = !pendingPhoto; $('#estimateEx').disabled = false; }
@@ -1143,8 +1662,28 @@ function wire() {
   $('#jumpToday').onclick = () => { state.date = todayKey(); render(); };
   $$('.tab').forEach(b => b.onclick = () => go(b.dataset.view));
   $('#setTargetCta').onclick = () => go('targets');
+  $('#openSearch').onclick = () => openSheet('search');
   $('#openText').onclick = () => openSheet('text');
   $('#openPhoto').onclick = () => openSheet('photo');
+  // food search
+  $('#foodQuery').addEventListener('input', renderSearch);
+  $('#foodQuery').addEventListener('keydown', e => { if (e.key === 'Enter') { const first = $('#foodResults [data-food]'); if (first) first.click(); } });
+  $('#foodResults').addEventListener('click', e => {
+    const fb = e.target.closest('[data-food]'); if (fb) { showPick(FOODS[Number(fb.dataset.food)]); return; }
+    const rb = e.target.closest('[data-recent]'); if (!rb) return;
+    const it = ($('#foodResults')._recent || [])[Number(rb.dataset.recent)]; if (!it) return;
+    const now = new Date(), day = clone(getDay(state.date));
+    day.entries.push({ id: uid(), name: it.name, portion: it.portion || '', kcal: num(it.kcal), p: num(it.p), c: num(it.c), f: num(it.f), meal: defaultMeal(), time: `${pad(now.getHours())}:${pad(now.getMinutes())}`, source: 'recent' });
+    putDay(day); closeSheet(); toast(`Logged ${it.name}`);
+  });
+  $('#pickBack').onclick = () => { pickFood = null; renderSearch(); setTimeout(() => $('#foodQuery').focus(), 30); };
+  $('#pickAmt').addEventListener('input', updatePick);
+  $('#pickUnit').addEventListener('change', () => { const u = ($('#pickUnit')._units || [])[Number($('#pickUnit').value)]; $('#pickAmt').value = u && u[0] === 'grams' ? '100' : '1'; updatePick(); });
+  $('#pickQty').addEventListener('click', e => { const b = e.target.closest('[data-q]'); if (!b) return; const u = ($('#pickUnit')._units || [])[Number($('#pickUnit').value)]; $('#pickAmt').value = u && u[0] === 'grams' ? String(Number(b.dataset.q) * 100) : b.dataset.q; updatePick(); });
+  $('#pickAdd').onclick = () => commitPick(false);
+  $('#pickAddMore').onclick = () => commitPick(true);
+  $('#toDescribe').onclick = () => setMode('text');
+  $('#toManual').onclick = () => setMode('manual');
   $('#openManual').onclick = () => openSheet('manual');
   $('#openExercise').onclick = () => openSheet('exercise');
   $('#sheetClose').onclick = closeSheet; $('#sheetBackdrop').onclick = closeSheet;

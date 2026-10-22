@@ -7,7 +7,15 @@ Everything lives in [`index.html`](index.html): no build step, no dependencies b
 ## What it does
 
 - **Targets** – Mifflin-St Jeor resting energy × activity multiplier, a goal (lose / maintain / gain) at a rate expressed as % of body weight per week, then a protein / fat / carb split. Every number can be edited before saving.
-- **Today** – a hero ring with calories left, three macro meters, and the day's log grouped by meal. Log food by **describing it**, by **photo**, or **by hand**; log **exercise** by description, quick chips, or a watch reading. Burned calories can be added back to the day's budget (switch on the Targets tab).
+- **Today** – a hero ring with calories left, three macro meters, and the day's log grouped by meal. Log food by **searching** a built-in database of about 375 common foods and drinks (pick a serving or enter grams), by **describing it**, by **photo**, or **by hand**; log **exercise** by description, quick chips, or a watch reading. Burned calories can be added back to the day's budget (switch on the Targets tab).
+
+## Food database
+
+The `FOODS` array near the top of the script holds one row per food: name, category, kcal / protein / carbs / fat per 100 g, a list of serving sizes in grams, and optional search aliases (Australian names such as capsicum, rockmelon, snag, maccas). Nutrient figures are USDA FoodData Central (SR Legacy) reference values per 100 g; a handful of Australian brand items (Weet-Bix, Tim Tam, Vegemite, meat pie) use the maker's label; composite dishes under *Meals* and *Fast food* are typical averages. To add a food, append a row in the same shape:
+
+```js
+["Name","Category",kcal,protein,carbs,fat,[["1 serve",120],["1 cup",150]],"aliases"],
+```
 - **Trends** – 14-day calories vs target, a smoothed weight trend, and a weekly check-in that estimates real expenditure from intake and weight change, then suggests an updated target.
 
 ## Where the AI comes from
